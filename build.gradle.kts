@@ -21,12 +21,14 @@ dependencies {
     val junitVersion = "5.8.1"
     val nettyVersion = "4.1.77.Final"
     val annotationsVersion = "23.0.0"
+    val gsonVersion = "2.9.1"
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
 
-    implementation(group = "io.netty", name = "netty-all", version = nettyVersion)
-    implementation(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
+    shadow(group = "io.netty", name = "netty-all", version = nettyVersion)
+    shadow(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
+    shadow(group = "com.google.code.gson", name = "gson", version = gsonVersion)
 }
 
 tasks.withType<ShadowJar> {

@@ -1,4 +1,4 @@
-package gbx.proxy.pipeline;
+package gbx.proxy.networking.pipeline.proxy;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;

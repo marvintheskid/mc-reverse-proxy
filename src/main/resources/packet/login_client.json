@@ -1,0 +1,52 @@
+{
+  "V1_7_2": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE"
+  ],
+  "V1_8": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE"
+  ],
+  "V1_9": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE"
+  ],
+  "V1_12": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE"
+  ],
+  "V1_12_1": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE"
+  ],
+  "V1_13": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ],
+  "V1_14": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ],
+  "V1_15_2": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ],
+  "V1_16": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ],
+  "V1_16_2": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ],
+  "V1_17": [
+    "LOGIN_START", 
+    "ENCRYPTION_RESPONSE",
+    "LOGIN_PLUGIN_RESPONSE"
+  ]
+}

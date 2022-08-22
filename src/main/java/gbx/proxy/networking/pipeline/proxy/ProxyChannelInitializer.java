@@ -1,4 +1,4 @@
-package gbx.proxy.pipeline;
+package gbx.proxy.networking.pipeline.proxy;
 
 import gbx.proxy.utils.ServerAddress;
 import io.netty.channel.*;

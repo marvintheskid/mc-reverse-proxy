@@ -1,6 +1,7 @@
 package gbx.proxy;
 
-import gbx.proxy.pipeline.ProxyChannelInitializer;
+import gbx.proxy.networking.packet.PacketTypes;
+import gbx.proxy.networking.pipeline.proxy.ProxyChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
@@ -16,9 +17,13 @@ public class ProxyBootstrap {
     public static final EventLoopGroup BOSS_GROUP = new NioEventLoopGroup(1);
     public static final EventLoopGroup WORKER_GROUP = new NioEventLoopGroup();
 
+    static {
+        PacketTypes.load();
+    }
+
     public static void main(String[] args) throws InterruptedException {
         int port = Integer.getInteger("port", 25565);
-        String targetAddr = System.getProperty("target");
+        String targetAddr = System.getProperty("target", "0:25566");
 
         System.out.println("[?] Resolving address... (" + targetAddr + ")");
         ServerAddress addr = AddressResolver.getServerAddress(targetAddr);
