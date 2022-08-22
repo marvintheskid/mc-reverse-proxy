@@ -2,9 +2,11 @@ package gbx.proxy.utils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -17,9 +19,11 @@ import java.util.function.*;
 public enum ByteBufUtils {;
     public static final int MAX_VAR_INT_LENGTH = 5;
     public static final int MAX_VAR_LONG_LENGTH = 10;
+    public static final int DEFAULT_MAX_STRING_LENGTH = 32767;
 
     private static final RuntimeException VARINT_TOO_BIG = new RuntimeException("VarInt too big");
     private static final RuntimeException VARLONG_TOO_BIG = new RuntimeException("VarLong too big");
+    private static final DecoderException WEIRD_STRING = new DecoderException("The received encoded string buffer length is less than zero! Weird string!");
 
     /**
      * Calculates the given variable integer's size.
@@ -447,5 +451,72 @@ public enum ByteBufUtils {;
     @NotNull
     public static UUID readUuid(@NotNull ByteBuf buf) {
         return new UUID(buf.readLong(), buf.readLong());
+    }
+
+    /**
+     * Writes the given {@link String} to the buffer with a max size of 32767.
+     *
+     * @param s the string
+     * @throws DecoderException if the length of the string is longer than {@link Short#MAX_VALUE}
+     */
+    public static void writeString(@NotNull ByteBuf buf, @NotNull String s) {
+        writeString(buf, s, DEFAULT_MAX_STRING_LENGTH);
+    }
+
+    /**
+     * Writes the given {@link String} to the buffer.
+     *
+     * @param s the string
+     * @param allowedLength the allowed length
+     * @throws DecoderException if the length of the string is longer than {@code allowedLength}
+     */
+    public static void writeString(@NotNull ByteBuf buf, @NotNull String s, int allowedLength) {
+        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+
+        if (bytes.length > allowedLength) {
+            throw new EncoderException("String too big ('" + s + "' was " + bytes.length + " bytes encoded, max " + allowedLength + ")");
+        } else {
+            writeVarInt(buf, bytes.length);
+            buf.writeCharSequence(s, StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
+     * Reads a {@link String} from the buffer, with a max size of 32767.
+     *
+     * @return the result
+     * @throws DecoderException if the buffer is bigger than the expected,
+     *                          or the length of the string is bigger than the expected
+     */
+    @NotNull
+    public static String readString(@NotNull ByteBuf buf) {
+        return readString(buf, DEFAULT_MAX_STRING_LENGTH);
+    }
+
+    /**
+     * Reads a {@link String} from the buffer.
+     *
+     * @param expectedLength the expected length of the result
+     * @return the result
+     * @throws DecoderException if the buffer is bigger than the expected,
+     *                          or the length of the string is bigger than the expected
+     */
+    @NotNull
+    public static String readString(@NotNull ByteBuf buf, int expectedLength) {
+        int length = readVarInt(buf);
+
+        if (length > expectedLength * 4) {
+            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + length + " > " + expectedLength * 4 + ")");
+        } else if (length < 0) {
+            throw WEIRD_STRING;
+        } else {
+            String s = buf.readCharSequence(length, StandardCharsets.UTF_8).toString();
+
+            if (s.length() > expectedLength) {
+                throw new DecoderException("The received string length is longer than maximum allowed (" + length + " > " + expectedLength + ")");
+            } else {
+                return s;
+            }
+        }
     }
 }

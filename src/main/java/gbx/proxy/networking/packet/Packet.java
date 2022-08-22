@@ -9,14 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface Packet {
     /**
-     * Returns the type of this packet.
-     *
-     * @return the type of this packet
-     */
-    @NotNull
-    PacketType type();
-
-    /**
      * Encodes this packet using the given protocol version.
      *
      * @param buf the target buffer
@@ -31,4 +23,12 @@ public interface Packet {
      * @param version the version
      */
     void decode(@NotNull ByteBuf buf, @NotNull Version version);
+
+    /**
+     * Returns the type of this packet.
+     *
+     * @return the type of this packet
+     */
+    @NotNull
+    PacketType type();
 }

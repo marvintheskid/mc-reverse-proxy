@@ -3,12 +3,16 @@ package gbx.proxy;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.pipeline.proxy.ProxyChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
+import gbx.proxy.utils.MinecraftEncryption;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
 
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.ResourceLeakDetector;
+
+import java.security.KeyPair;
 
 /**
  * Entry point of the proxy.
@@ -16,12 +20,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class ProxyBootstrap {
     public static final EventLoopGroup BOSS_GROUP = new NioEventLoopGroup(1);
     public static final EventLoopGroup WORKER_GROUP = new NioEventLoopGroup();
+    public static final KeyPair SERVER_KEY = MinecraftEncryption.generateKeyPairs();
 
     static {
         PacketTypes.load();
     }
 
     public static void main(String[] args) throws InterruptedException {
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", "0:25566");
 

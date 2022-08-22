@@ -1,5 +1,9 @@
 package gbx.proxy.networking.pipeline.proxy;
 
+import gbx.proxy.networking.Keys;
+import gbx.proxy.networking.ProtocolPhase;
+import gbx.proxy.networking.pipeline.Pipeline;
+import gbx.proxy.networking.pipeline.game.*;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -42,7 +46,25 @@ public class ClientToProxyHandler extends ChannelInboundHandlerAdapter {
             }
         );
 
-        ctx.pipeline().addLast(new ClientToProxyDuplexHandler(future.channel()));
+        Channel channel = future.channel();
+
+        channel.attr(Keys.PHASE_KEY)
+            .set(ProtocolPhase.HANDSHAKE);
+
+        channel.pipeline()
+            .addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
+            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
+            .addLast(Pipeline.PACKET_HANDLER, new PacketDuplexHandler());
+        //.addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
+            //.addLast(Pipeline.ENCODER, new ServerPacketReader());
+
+        ctx.pipeline()
+            .addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
+            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
+            //.addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
+            //.addLast(Pipeline.DECODER, new ClientPacketReader())
+            //.addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
+            .addLast(new ClientToProxyAdapter(channel));
         super.channelActive(ctx);
     }
 

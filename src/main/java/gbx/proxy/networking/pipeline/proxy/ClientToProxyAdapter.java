@@ -1,14 +1,14 @@
 package gbx.proxy.networking.pipeline.proxy;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-public class ClientToProxyDuplexHandler extends ChannelDuplexHandler {
+public class ClientToProxyAdapter extends ChannelInboundHandlerAdapter {
     private final Channel serverChannel;
 
-    public ClientToProxyDuplexHandler(Channel serverChannel) {
+    public ClientToProxyAdapter(Channel serverChannel) {
         this.serverChannel = serverChannel;
     }
 
@@ -21,6 +21,8 @@ public class ClientToProxyDuplexHandler extends ChannelDuplexHandler {
             serverChannel.writeAndFlush(msg, serverChannel.voidPromise());
         }
     }
+
+    // write: p -> c
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {

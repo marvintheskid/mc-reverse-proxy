@@ -128,7 +128,7 @@ public interface MinecraftEncryption {
      */
     private static byte[] createAndOperate(int mode, Key key, byte[] data) {
         try {
-            return createCipher(mode, key.getAlgorithm(), key).doFinal(data);
+            return createCipher(key.getAlgorithm(), mode, key).doFinal(data);
         } catch (IllegalBlockSizeException | BadPaddingException ex) {
             ex.printStackTrace();
             return null;
@@ -138,12 +138,12 @@ public interface MinecraftEncryption {
     /**
      * Creates a cipher of the given type.
      *
-     * @param mode the mode
      * @param cipherType the type of the cipher
-     * @param key the key
+     * @param mode       the mode
+     * @param key        the key
      * @return the cipher
      */
-    private static Cipher createCipher(int mode, String cipherType, Key key) {
+    private static Cipher createCipher(String cipherType, int mode, Key key) {
         try {
             Cipher cipher = Cipher.getInstance(cipherType);
             cipher.init(mode, key);
@@ -163,9 +163,9 @@ public interface MinecraftEncryption {
      */
     static Cipher createEncryptionCipher(int mode, Key key) {
         try {
-            Cipher var2 = Cipher.getInstance("AES/CFB8/NoPadding");
-            var2.init(mode, key, new IvParameterSpec(key.getEncoded()));
-            return var2;
+            Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
+            cipher.init(mode, key, new IvParameterSpec(key.getEncoded()));
+            return cipher;
         } catch (GeneralSecurityException ex) {
             throw new RuntimeException(ex);
         }
