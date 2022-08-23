@@ -84,9 +84,9 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                     /*clientChannel.pipeline()
                         .addAfter(Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
                         .addAfter(Pipeline.DECOMPRESSOR, Pipeline.COMPRESSOR, new PacketCompressor(threshold));*/
+                    buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.LOGIN_SUCCESS == type) {
-                    System.out.println("login success");
                     ctx.channel().attr(Keys.PHASE_KEY).set(ProtocolPhase.PLAY);
                 }
             }
