@@ -2,8 +2,6 @@ package gbx.proxy.networking;
 
 import io.netty.util.AttributeKey;
 
-import javax.crypto.SecretKey;
-
 /**
  * Pipeline attribute keys.
  */

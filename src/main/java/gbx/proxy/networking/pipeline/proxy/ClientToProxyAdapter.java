@@ -23,7 +23,6 @@ public class ClientToProxyAdapter extends ChannelInboundHandlerAdapter {
     }
 
     // write: p -> c
-
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         System.out.println("[!] Client disconnect: " + ctx.channel().remoteAddress());

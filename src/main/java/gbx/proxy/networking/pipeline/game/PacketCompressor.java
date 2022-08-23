@@ -11,7 +11,7 @@ import static gbx.proxy.utils.ByteBufUtils.writeVarInt;
 public class PacketCompressor extends MessageToByteEncoder<ByteBuf> {
     private final int threshold;
     private final Deflater deflater;
-    private final byte[] bytes = new byte[8192];
+    private final byte[] buffer = new byte[8192];
 
     public PacketCompressor(int threshold) {
         this.threshold = threshold;
@@ -20,22 +20,22 @@ public class PacketCompressor extends MessageToByteEncoder<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) {
-        int readable = in.readableBytes();
+        int size = in.readableBytes();
 
-        if (readable < threshold) {
+        if (size < threshold) {
             writeVarInt(out, 0);
             out.writeBytes(in);
         } else {
-            byte[] arr = new byte[readable];
-            in.readBytes(arr);
-            writeVarInt(out, arr.length);
+            byte[] input = new byte[size];
+            in.readBytes(input);
+            writeVarInt(out, input.length);
 
-            deflater.setInput(arr, 0, readable);
+            deflater.setInput(input, 0, size);
             deflater.finish();
 
             while (!deflater.finished()) {
-                int deflated = deflater.deflate(bytes);
-                out.writeBytes(bytes, 0, deflated);
+                int deflatedSize = deflater.deflate(buffer);
+                out.writeBytes(buffer, 0, deflatedSize);
             }
 
             deflater.reset();

@@ -12,7 +12,7 @@ import java.util.zip.Inflater;
 import static gbx.proxy.utils.ByteBufUtils.readVarInt;
 
 public class PacketDecompressor extends ByteToMessageDecoder {
-    private static final int TWO_MEGABYTES = 1024 * 1024 * 2;
+    private static final int PACKET_LIMIT = 1024 * 1024 * 2; // 2 MB
 
     private final Inflater inflater;
     private final int threshold;
@@ -23,7 +23,7 @@ public class PacketDecompressor extends ByteToMessageDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext p_decode_1_, ByteBuf in, List<Object> out) throws Exception {
         if (in.readableBytes() != 0) {
             int size = readVarInt(in);
 
@@ -34,13 +34,13 @@ public class PacketDecompressor extends ByteToMessageDecoder {
                     throw new DecoderException("Badly compressed packet - size of " + size + " is below server threshold of " + threshold);
                 }
 
-                if (size > TWO_MEGABYTES) {
-                    throw new DecoderException("Badly compressed packet - size of " + size + " is larger than protocol maximum of " + TWO_MEGABYTES);
+                if (size > PACKET_LIMIT) {
+                    throw new DecoderException("Badly compressed packet - size of " + size + " is larger than protocol maximum of " + PACKET_LIMIT);
                 }
 
-                byte[] array = new byte[in.readableBytes()];
-                in.readBytes(array);
-                inflater.setInput(array);
+                byte[] input = new byte[in.readableBytes()];
+                in.readBytes(input);
+                inflater.setInput(input);
 
                 byte[] output = new byte[size];
                 inflater.inflate(output);

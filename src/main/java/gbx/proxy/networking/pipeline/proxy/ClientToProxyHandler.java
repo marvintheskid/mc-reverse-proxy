@@ -2,6 +2,7 @@ package gbx.proxy.networking.pipeline.proxy;
 
 import gbx.proxy.networking.Keys;
 import gbx.proxy.networking.ProtocolPhase;
+import gbx.proxy.networking.Version;
 import gbx.proxy.networking.pipeline.Pipeline;
 import gbx.proxy.networking.pipeline.game.*;
 import gbx.proxy.utils.ServerAddress;
@@ -24,10 +25,11 @@ public class ClientToProxyHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+        Channel clientChannel = ctx.channel(); // the connection to the proxy
         Bootstrap bootstrap = new Bootstrap()
-            .group(ctx.channel().eventLoop())
-            .channel(ctx.channel().getClass())
-            .handler(new ServerToProxyHandler(ctx.channel()))
+            .group(clientChannel.eventLoop())
+            .channel(clientChannel.getClass())
+            .handler(new ServerToProxyHandler(clientChannel))
             .remoteAddress(address.toInetAddress());
 
         ChannelFuture future = bootstrap.connect()
@@ -46,25 +48,20 @@ public class ClientToProxyHandler extends ChannelInboundHandlerAdapter {
             }
         );
 
-        Channel channel = future.channel();
+        Channel serverChannel = future.channel(); // the connection to the backend
+        serverChannel.attr(Keys.PHASE_KEY).set(ProtocolPhase.HANDSHAKE);
+        serverChannel.attr(Keys.VERSION_KEY).set(Version.V1_8);
 
-        channel.attr(Keys.PHASE_KEY)
-            .set(ProtocolPhase.HANDSHAKE);
-
-        channel.pipeline()
+        clientChannel.pipeline()
             .addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
             .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
-            .addLast(Pipeline.PACKET_HANDLER, new PacketDuplexHandler());
-        //.addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
-            //.addLast(Pipeline.ENCODER, new ServerPacketReader());
+            .addLast(new ClientToProxyAdapter(serverChannel));
 
-        ctx.pipeline()
-            .addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
-            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
-            //.addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
-            //.addLast(Pipeline.DECODER, new ClientPacketReader())
-            //.addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
-            .addLast(new ClientToProxyAdapter(channel));
+        serverChannel.pipeline()
+            .addLast(Pipeline.FRAME_DECODER, new VarIntFrameEncoder())
+            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameDecoder())
+            .addLast(Pipeline.PACKET_HANDLER, new PacketDuplexHandler(clientChannel));
+
         super.channelActive(ctx);
     }
 

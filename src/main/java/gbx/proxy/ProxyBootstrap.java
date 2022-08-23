@@ -20,7 +20,7 @@ import java.security.KeyPair;
 public class ProxyBootstrap {
     public static final EventLoopGroup BOSS_GROUP = new NioEventLoopGroup(1);
     public static final EventLoopGroup WORKER_GROUP = new NioEventLoopGroup();
-    public static final KeyPair SERVER_KEY = MinecraftEncryption.generateKeyPairs();
+    public static final KeyPair PROXY_KEY = MinecraftEncryption.generateKeyPairs();
 
     static {
         PacketTypes.load();
@@ -29,7 +29,7 @@ public class ProxyBootstrap {
     public static void main(String[] args) throws InterruptedException {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
         int port = Integer.getInteger("port", 25565);
-        String targetAddr = System.getProperty("target", "0:25566");
+        String targetAddr = System.getProperty("target", ":25566");
 
         System.out.println("[?] Resolving address... (" + targetAddr + ")");
         ServerAddress addr = AddressResolver.getServerAddress(targetAddr);
