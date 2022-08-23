@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ServerToProxyHandler extends ChannelInboundHandlerAdapter {
     private final Channel clientChannel;
+
     public ServerToProxyHandler(Channel clientChannel) {
         this.clientChannel = clientChannel;
     }

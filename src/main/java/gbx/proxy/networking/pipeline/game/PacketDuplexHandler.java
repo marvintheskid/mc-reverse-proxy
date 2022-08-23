@@ -80,6 +80,7 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                     // TODO: this is a hacky solution: we dont forward the compression packet to the client, because
                     //  with the current pipeline its kinda hacky to await for the client to enable compression.
                     //  This caused the client to read compressed packets without compression enabled client-side.
+                    //  Note: its not even necessary for us to enable compression for the client because of loopback
                     /*clientChannel.pipeline()
                         .addAfter(Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
                         .addAfter(Pipeline.DECOMPRESSOR, Pipeline.COMPRESSOR, new PacketCompressor(threshold));*/
