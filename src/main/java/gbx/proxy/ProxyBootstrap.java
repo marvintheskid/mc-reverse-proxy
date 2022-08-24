@@ -8,6 +8,9 @@ import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
 
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
@@ -18,8 +21,10 @@ import java.security.KeyPair;
  * Entry point of the proxy.
  */
 public class ProxyBootstrap {
-    public static final EventLoopGroup BOSS_GROUP = new NioEventLoopGroup(1);
-    public static final EventLoopGroup WORKER_GROUP = new NioEventLoopGroup();
+    public static final EventLoopGroup BOSS_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+    public static final EventLoopGroup WORKER_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+    public static final Class<? extends ServerChannel> CHANNEL_TYPE = Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
+
     public static final KeyPair PROXY_KEY = MinecraftEncryption.generateKeyPairs();
 
     static {
@@ -37,7 +42,7 @@ public class ProxyBootstrap {
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
-                .channel(NioServerSocketChannel.class)
+                .channel(CHANNEL_TYPE)
                 .group(BOSS_GROUP, WORKER_GROUP)
                 .childHandler(new ProxyChannelInitializer(addr))
                 .childOption(ChannelOption.SO_REUSEADDR, true)
