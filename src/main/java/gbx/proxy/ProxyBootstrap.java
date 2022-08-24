@@ -36,6 +36,10 @@ public class ProxyBootstrap {
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");
 
+        if (Epoll.isAvailable()) {
+            System.out.println("[!] Using epoll...");
+        }
+
         System.out.println("[?] Resolving address... (" + targetAddr + ")");
         ServerAddress addr = AddressResolver.getServerAddress(targetAddr);
         System.out.println("[!] Resolved server address: " + addr);

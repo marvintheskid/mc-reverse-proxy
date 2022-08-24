@@ -7,8 +7,6 @@ import gbx.proxy.networking.Version;
 import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.packet.impl.handshake.client.SetProtocol;
-import gbx.proxy.networking.packet.impl.login.client.EncryptionResponse;
-import gbx.proxy.networking.packet.impl.login.server.EncryptionRequest;
 import gbx.proxy.networking.pipeline.Pipeline;
 import gbx.proxy.utils.IndexRollback;
 import io.netty.buffer.ByteBuf;
@@ -44,10 +42,9 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                     ctx.channel().attr(Keys.PHASE_KEY).set(setProtocol.nextPhase());
                     ctx.channel().attr(Keys.VERSION_KEY).set(setProtocol.protocolVersion());
                 } else if (PacketTypes.Login.Client.ENCRYPTION_RESPONSE == type) {
-                    EncryptionResponse response = new EncryptionResponse();
-                    response.decode(buf, version);
-
                     // TODO
+                    buf.release();
+                    return;
                 }
             }
         }
@@ -65,10 +62,9 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                 PacketType type = PacketTypes.find(ProtocolDirection.SERVER, phase, id, version);
 
                 if (PacketTypes.Login.Server.ENCRYPTION_REQUEST == type) {
-                    EncryptionRequest request = new EncryptionRequest();
-                    request.decode(buf, Version.V1_8);
-
                     // TODO
+                    buf.release();
+                    return;
                 } else if (PacketTypes.Login.Server.SET_COMPRESSION == type || PacketTypes.Play.Server.SET_COMPRESSION == type) {
                     int threshold = readVarInt(buf);
                     System.out.println("[+] Enabling compression for " + ctx.channel().remoteAddress() + " (compression after: " + threshold + ")");

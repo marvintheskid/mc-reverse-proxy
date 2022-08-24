@@ -26,7 +26,7 @@ import static gbx.proxy.utils.Tuple.tuple;
  */
 public interface PacketTypes {
     /**
-     * Loads all the packet types.
+     * Loads all packet types.
      */
     static void load() {
         Handshake.load();

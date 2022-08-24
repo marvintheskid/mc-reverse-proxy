@@ -32,11 +32,25 @@ public class EncryptionResponse implements Packet {
         return PacketTypes.Login.Client.ENCRYPTION_RESPONSE;
     }
 
+    @NotNull
     public byte[] encryptedSecretKey() {
         return encryptedSecretKey;
     }
 
+    @NotNull
+    public EncryptionResponse encryptedSecretKey(byte[] encryptedSecretKey) {
+        this.encryptedSecretKey = encryptedSecretKey;
+        return this;
+    }
+
+    @NotNull
     public byte[] encryptedVerifyToken() {
         return encryptedVerifyToken;
+    }
+
+    @NotNull
+    public EncryptionResponse encryptedVerifyToken(byte[] encryptedVerifyToken) {
+        this.encryptedVerifyToken = encryptedVerifyToken;
+        return this;
     }
 }
