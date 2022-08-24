@@ -14,6 +14,14 @@ public class EncryptionResponse implements Packet {
     private byte[] encryptedSecretKey;
     private byte[] encryptedVerifyToken;
 
+    public EncryptionResponse(byte[] encryptedSecretKey, byte[] encryptedVerifyToken) {
+        this.encryptedSecretKey = encryptedSecretKey;
+        this.encryptedVerifyToken = encryptedVerifyToken;
+    }
+
+    public EncryptionResponse() {
+    }
+
     @Override
     public void encode(@NotNull ByteBuf buf, @NotNull Version version) {
         writeByteArray(buf, encryptedSecretKey);
