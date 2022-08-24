@@ -24,7 +24,7 @@ public class ClientToProxyHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(@NotNull ChannelHandlerContext ctx) {
         Channel clientChannel = ctx.channel(); // the connection to the proxy
         Bootstrap bootstrap = new Bootstrap()
             .group(clientChannel.eventLoop())
@@ -62,7 +62,7 @@ public class ClientToProxyHandler extends ChannelInboundHandlerAdapter {
             .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameDecoder())
             .addLast(Pipeline.PACKET_HANDLER, new PacketDuplexHandler(clientChannel));
 
-        super.channelActive(ctx);
+        ctx.channel().pipeline().remove(this);
     }
 
     @Override

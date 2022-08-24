@@ -20,6 +20,7 @@ public class ServerToProxyHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(@NotNull ChannelHandlerContext ctx) {
         ctx.channel().pipeline()
             .addLast(new ServerToProxyAdapter(clientChannel));
+        ctx.channel().pipeline().remove(this);
     }
 
     @Override
