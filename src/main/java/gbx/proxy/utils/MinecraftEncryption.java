@@ -13,11 +13,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -35,6 +31,22 @@ public interface MinecraftEncryption {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(1024);
             return keyPairGenerator.generateKeyPair();
+        } catch (NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Generates the required shared key for packet encryption.
+     *
+     * @return the keypair
+     */
+    static SecretKey generateSharedKey() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(128);
+            return keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException ex) {
             ex.printStackTrace();
             return null;
@@ -108,13 +120,24 @@ public interface MinecraftEncryption {
     }
 
     /**
+     * Encrypts the given data using the given key.
+     *
+     * @param key the key
+     * @param data the data
+     * @return the encrypted data
+     */
+    static byte[] encryptData(Key key, byte[] data) {
+        return createAndOperate(Cipher.ENCRYPT_MODE, key, data);
+    }
+
+    /**
      * Decrypts the given data using the given key.
      *
      * @param key the key
      * @param data the data
      * @return the decrypted data
      */
-    static byte[] decryptData(Key key, byte[] data) { // Feather: renamed method: b(Key, byte[]) -> decryptData(Key, byte[])
+    static byte[] decryptData(Key key, byte[] data) {
         return createAndOperate(Cipher.DECRYPT_MODE, key, data);
     }
 
