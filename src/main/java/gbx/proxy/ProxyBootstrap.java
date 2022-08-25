@@ -3,7 +3,6 @@ package gbx.proxy;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.pipeline.proxy.ProxyChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
-import gbx.proxy.utils.MinecraftEncryption;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
 
@@ -15,8 +14,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 
-import java.security.KeyPair;
-
 /**
  * Entry point of the proxy.
  */
@@ -24,8 +21,6 @@ public class ProxyBootstrap {
     public static final EventLoopGroup BOSS_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
     public static final EventLoopGroup WORKER_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
     public static final Class<? extends ServerChannel> CHANNEL_TYPE = Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
-
-    public static final KeyPair PROXY_KEY = MinecraftEncryption.generateKeyPairs();
 
     static {
         PacketTypes.load();
@@ -61,6 +56,7 @@ public class ProxyBootstrap {
                     } else {
                         System.out.println("[-] Failed to bind on " + f.channel().localAddress());
                         f.cause().printStackTrace();
+                        f.channel().close();
                     }
                 });
 

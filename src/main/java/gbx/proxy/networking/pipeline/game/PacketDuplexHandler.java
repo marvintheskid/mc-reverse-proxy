@@ -69,7 +69,7 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                 PacketType type = PacketTypes.find(ProtocolDirection.SERVER, phase, id, version);
 
                 if (PacketTypes.Login.Server.ENCRYPTION_REQUEST == type) {
-                    System.out.println("[+] Enabling encryption for " + ctx.channel().remoteAddress());
+                    System.out.println("[+] Enabling encryption for " + clientChannel.remoteAddress());
 
                     EncryptionRequest original = new EncryptionRequest();
                     original.decode(buf, version);
@@ -96,7 +96,7 @@ public class PacketDuplexHandler extends ChannelDuplexHandler {
                     return;
                 } else if (PacketTypes.Login.Server.SET_COMPRESSION == type || PacketTypes.Play.Server.SET_COMPRESSION == type) {
                     int threshold = readVarInt(buf);
-                    System.out.println("[+] Enabling compression for " + ctx.channel().remoteAddress() + " (compression after: " + threshold + ")");
+                    System.out.println("[+] Enabling compression for " + clientChannel.remoteAddress() + " (compression after: " + threshold + ")");
 
                     ctx.channel().pipeline()
                         .addAfter(ctx.channel().pipeline().get(Pipeline.DECRYPTER) != null ? Pipeline.DECRYPTER : Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
