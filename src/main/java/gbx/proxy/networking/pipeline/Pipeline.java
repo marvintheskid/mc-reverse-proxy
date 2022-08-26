@@ -5,9 +5,14 @@ package gbx.proxy.networking.pipeline;
  */
 public interface Pipeline {
     /**
-     * The identifier of the packet handler.
+     * The identifier of the frontend handler.
      */
-    String PACKET_HANDLER = "packet-handler";
+    String FRONTEND_HANDLER = "frontend-handler";
+
+    /**
+     * The identifier of the backend handler.
+     */
+    String BACKEND_HANDLER = "backend-handler";
 
     /**
      * The identifier of the encrypter.
