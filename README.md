@@ -1,2 +1,2 @@
-# java-mc-proxy
-A simple MITM proxy for Minecraft using Netty 4.x.
+# mc-reverse-proxy
+A simple reverse proxy for Minecraft using Java 17 and Netty 4.x.
