@@ -1,9 +1,10 @@
 package gbx.proxy;
 
+import com.mojang.authlib.minecraft.MinecraftSessionService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import gbx.proxy.networking.packet.PacketTypes;
-import gbx.proxy.networking.pipeline.proxy.ProxyChannelInitializer;
+import gbx.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
-import gbx.proxy.utils.MinecraftEncryption;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
 
@@ -13,26 +14,38 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.ResourceLeakDetector;
 
-import java.security.KeyPair;
+import java.net.Proxy;
 
 /**
  * Entry point of the proxy.
  */
 public class ProxyBootstrap {
-    public static final EventLoopGroup BOSS_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
-    public static final EventLoopGroup WORKER_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-    public static final Class<? extends ServerChannel> CHANNEL_TYPE = Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
+    public static final EventLoopGroup BOSS_GROUP;
+    public static final EventLoopGroup WORKER_GROUP;
+    public static final Class<? extends ServerChannel> CHANNEL_TYPE;
 
-    public static final KeyPair PROXY_KEY = MinecraftEncryption.generateKeyPairs();
+    public static MinecraftSessionService SESSION_SERVICE;
+    public static String ACCESS_TOKEN = "";
+    public static String UUID = "";
+    public static String NAME = "";
 
     static {
+        if (Epoll.isAvailable()) {
+            BOSS_GROUP = new EpollEventLoopGroup(1);
+            WORKER_GROUP = new EpollEventLoopGroup();
+            CHANNEL_TYPE = EpollServerSocketChannel.class;
+        } else {
+            BOSS_GROUP = new NioEventLoopGroup(1);
+            WORKER_GROUP = new NioEventLoopGroup();
+            CHANNEL_TYPE = NioServerSocketChannel.class;
+        }
+
+        SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();
         PacketTypes.load();
     }
 
     public static void main(String[] args) throws InterruptedException {
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");
 
@@ -48,7 +61,7 @@ public class ProxyBootstrap {
             ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(CHANNEL_TYPE)
                 .group(BOSS_GROUP, WORKER_GROUP)
-                .childHandler(new ProxyChannelInitializer(addr))
+                .childHandler(new FrontendChannelInitializer(addr))
                 .childOption(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.IP_TOS, 0x18)

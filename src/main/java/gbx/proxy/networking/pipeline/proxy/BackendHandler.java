@@ -1,5 +1,6 @@
 package gbx.proxy.networking.pipeline.proxy;
 
+import gbx.proxy.ProxyBootstrap;
 import gbx.proxy.networking.Keys;
 import gbx.proxy.networking.ProtocolDirection;
 import gbx.proxy.networking.ProtocolPhase;
@@ -7,9 +8,6 @@ import gbx.proxy.networking.Version;
 import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.packet.impl.handshake.client.SetProtocol;
-import gbx.proxy.networking.pipeline.Pipeline;
-import gbx.proxy.networking.pipeline.game.PacketCompressor;
-import gbx.proxy.networking.pipeline.game.PacketDecompressor;
 import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
 import io.netty.buffer.ByteBuf;
@@ -19,7 +17,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.jetbrains.annotations.NotNull;
 
-import static gbx.proxy.utils.ByteBufUtils.readVarInt;
+import static gbx.proxy.utils.ByteBufUtils.*;
 
 /**
  * The backend handler.
@@ -65,6 +63,15 @@ public class BackendHandler extends ChannelDuplexHandler {
 
                     AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
                     AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
+                } else if (PacketTypes.Login.Client.LOGIN_START == type) {
+                    ByteBuf newMsg = ctx.channel().alloc().buffer();
+                    newMsg.retain();
+                    writeVarInt(newMsg, id);
+                    writeString(newMsg, ProxyBootstrap.NAME);
+
+                    super.write(ctx, newMsg, promise);
+                    buf.release();
+                    return;
                 }
             }
         }

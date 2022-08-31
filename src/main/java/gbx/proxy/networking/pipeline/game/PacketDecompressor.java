@@ -23,7 +23,7 @@ public class PacketDecompressor extends ByteToMessageDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext p_decode_1_, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         if (in.readableBytes() != 0) {
             int size = readVarInt(in);
 

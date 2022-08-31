@@ -1,24 +1,33 @@
 package gbx.proxy.networking.pipeline.proxy;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.util.UUIDTypeAdapter;
+import gbx.proxy.ProxyBootstrap;
 import gbx.proxy.networking.Keys;
 import gbx.proxy.networking.ProtocolDirection;
 import gbx.proxy.networking.ProtocolPhase;
 import gbx.proxy.networking.Version;
 import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
+import gbx.proxy.networking.packet.impl.login.client.EncryptionResponse;
+import gbx.proxy.networking.packet.impl.login.server.EncryptionRequest;
 import gbx.proxy.networking.pipeline.Pipeline;
+import gbx.proxy.networking.pipeline.game.CipherDecoder;
+import gbx.proxy.networking.pipeline.game.CipherEncoder;
 import gbx.proxy.networking.pipeline.game.PacketCompressor;
 import gbx.proxy.networking.pipeline.game.PacketDecompressor;
 import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
+import gbx.proxy.utils.MinecraftEncryption;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
-import static gbx.proxy.utils.ByteBufUtils.readVarInt;
+import javax.crypto.SecretKey;
+import java.math.BigInteger;
+import java.security.PublicKey;
+
+import static gbx.proxy.utils.ByteBufUtils.*;
 
 /**
  * The frontend handler.
@@ -43,7 +52,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
     }
 
     /**
-     * Handles proxy to server traffic.
+     * Handles proxy to client traffic.
      *
      * @apiNote the {@link Channel} returned by {@code ctx} is the <b>frontend</b> connection.
      */
@@ -57,17 +66,53 @@ public class FrontendHandler extends ChannelDuplexHandler {
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
                 PacketType type = PacketTypes.find(ProtocolDirection.SERVER, phase, id, version);
 
-                if (PacketTypes.Login.Server.SET_COMPRESSION == type) {
+                if (PacketTypes.Login.Server.ENCRYPTION_REQUEST == type) {
+                    System.out.println("[+] Enabling encryption for " + frontend.remoteAddress());
+
+                    EncryptionRequest original = new EncryptionRequest();
+                    original.decode(buf, version);
+
+                    SecretKey secretKey = MinecraftEncryption.generateSecretKey();
+                    PublicKey publicKey = original.publicKey();
+
+                    String serverId = new BigInteger(MinecraftEncryption.hashServerId(original.hashedServerId(), publicKey, secretKey)).toString(16);
+
+                    ProxyBootstrap.SESSION_SERVICE.joinServer(
+                        new GameProfile(UUIDTypeAdapter.fromString(ProxyBootstrap.UUID), null),
+                        ProxyBootstrap.ACCESS_TOKEN,
+                        serverId
+                    );
+
+                    EncryptionResponse response = new EncryptionResponse(
+                        MinecraftEncryption.encryptData(publicKey, secretKey.getEncoded()),
+                        MinecraftEncryption.encryptData(publicKey, original.verifyToken())
+                    );
+
+                    ByteBuf responseBuf = ctx.channel().alloc().buffer();
+                    responseBuf.retain();
+                    writeVarInt(responseBuf, id);
+                    response.encode(responseBuf, version);
+
+                    backend.writeAndFlush(responseBuf).addListener((ChannelFutureListener) f -> f.channel().pipeline()
+                        .addFirst(Pipeline.DECRYPTER, new CipherDecoder(secretKey))
+                        .addAfter(Pipeline.DECRYPTER, Pipeline.ENCRYPTER, new CipherEncoder(secretKey))
+                    );
+
+                    responseBuf.release();
+                    buf.release();
+                    return;
+                } else if (PacketTypes.Login.Server.SET_COMPRESSION == type) {
                     int threshold = readVarInt(buf);
                     System.out.println("[+] Enabling compression for " + frontend.remoteAddress() + " (compression after: " + threshold + ")");
 
                     backend.pipeline()
-                        .addAfter(backend.pipeline().get(Pipeline.DECRYPTER) != null ? Pipeline.DECRYPTER : Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
+                        .addAfter(backend.pipeline().get(Pipeline.ENCRYPTER) != null ? Pipeline.ENCRYPTER : Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
                         .addAfter(Pipeline.DECOMPRESSOR, Pipeline.COMPRESSOR, new PacketCompressor(threshold));
 
                     buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.LOGIN_SUCCESS == type) {
+                    System.out.println("[*] Switching protocol stage to " + ProtocolPhase.PLAY);
                     AttributeUtils.update(Keys.PHASE_KEY, ProtocolPhase.PLAY, frontend, backend);
                 }
             }
