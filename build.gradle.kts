@@ -15,6 +15,9 @@ repositories {
     maven {
         url = uri("https://jitpack.io")
     }
+    maven {
+        url = uri("https://libraries.minecraft.net/")
+    }
 }
 
 dependencies {
@@ -22,6 +25,7 @@ dependencies {
     val nettyVersion = "4.1.77.Final"
     val annotationsVersion = "23.0.0"
     val gsonVersion = "2.9.1"
+    val authlibVersion = "3.5.41"
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
@@ -29,6 +33,7 @@ dependencies {
     shadow(group = "io.netty", name = "netty-all", version = nettyVersion)
     shadow(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
     shadow(group = "com.google.code.gson", name = "gson", version = gsonVersion)
+    shadow(group = "com.mojang", name = "authlib", version = authlibVersion)
 }
 
 tasks.withType<ShadowJar> {
