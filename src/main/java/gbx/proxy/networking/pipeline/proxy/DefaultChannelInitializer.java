@@ -4,6 +4,7 @@ import gbx.proxy.networking.Keys;
 import gbx.proxy.networking.ProtocolPhase;
 import gbx.proxy.networking.Version;
 import gbx.proxy.networking.pipeline.Pipeline;
+import gbx.proxy.networking.pipeline.game.PacketSerializer;
 import gbx.proxy.networking.pipeline.game.VarIntFrameDecoder;
 import gbx.proxy.networking.pipeline.game.VarIntFrameEncoder;
 import io.netty.channel.Channel;
@@ -21,6 +22,7 @@ public class DefaultChannelInitializer extends ChannelInitializer<Channel> {
 
         ch.pipeline()
             .addLast(Pipeline.FRAME_DECODER, new VarIntFrameDecoder())
-            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder());
+            .addLast(Pipeline.FRAME_ENCODER, new VarIntFrameEncoder())
+            .addLast(Pipeline.PACKET_SERIALIZER, new PacketSerializer());
     }
 }

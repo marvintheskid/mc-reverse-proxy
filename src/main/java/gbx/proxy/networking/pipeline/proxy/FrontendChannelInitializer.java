@@ -43,7 +43,6 @@ public class FrontendChannelInitializer extends DefaultChannelInitializer {
 
             super.initChannel(frontend);
             frontend.pipeline()
-                .addLast(Pipeline.PACKET_SERIALIZER, new PacketSerializer())
                 .addLast(Pipeline.FRONTEND_HANDLER, new FrontendHandler(future.channel()));
         });
     }

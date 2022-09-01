@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.PublicKey;
-import java.util.Map;
 
 import static gbx.proxy.utils.ByteBufUtils.*;
 

@@ -19,7 +19,6 @@ public class BackendChannelInitializer extends DefaultChannelInitializer {
     protected void initChannel(@NotNull Channel backend) {
         super.initChannel(backend);
         backend.pipeline()
-            .addLast(Pipeline.PACKET_SERIALIZER, new PacketSerializer())
             .addLast(Pipeline.BACKEND_HANDLER, new BackendHandler(frontend));
     }
 }
