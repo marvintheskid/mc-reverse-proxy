@@ -1,14 +1,14 @@
 package gbx.proxy.networking.pipeline.proxy;
 
 import gbx.proxy.networking.pipeline.Pipeline;
+import gbx.proxy.networking.pipeline.game.PacketSerializer;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The backend handler handles initial connections from the proxy towards the server.
  */
-public class BackendChannelInitializer extends ChannelInitializer<Channel> {
+public class BackendChannelInitializer extends DefaultChannelInitializer {
     private final Channel frontend;
 
     public BackendChannelInitializer(Channel frontend) {
@@ -17,7 +17,9 @@ public class BackendChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(@NotNull Channel backend) {
-        DefaultChannelInitializer.INSTANCE.init(backend);
-        backend.pipeline().addLast(Pipeline.BACKEND_HANDLER, new BackendHandler(frontend));
+        super.initChannel(backend);
+        backend.pipeline()
+            .addLast(Pipeline.PACKET_SERIALIZER, new PacketSerializer())
+            .addLast(Pipeline.BACKEND_HANDLER, new BackendHandler(frontend));
     }
 }

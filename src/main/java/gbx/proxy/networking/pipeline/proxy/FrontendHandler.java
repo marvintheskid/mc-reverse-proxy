@@ -20,12 +20,14 @@ import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
 import gbx.proxy.utils.MinecraftEncryption;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.util.Map;
 
 import static gbx.proxy.utils.ByteBufUtils.*;
 
@@ -90,12 +92,12 @@ public class FrontendHandler extends ChannelDuplexHandler {
 
                     ByteBuf responseBuf = ctx.channel().alloc().buffer();
                     responseBuf.retain();
-                    writeVarInt(responseBuf, id);
+                    writeVarInt(responseBuf, PacketTypes.Login.Client.ENCRYPTION_RESPONSE.id(version));
                     response.encode(responseBuf, version);
 
                     backend.writeAndFlush(responseBuf).addListener((ChannelFutureListener) f -> f.channel().pipeline()
-                        .addFirst(Pipeline.DECRYPTER, new CipherDecoder(secretKey))
-                        .addAfter(Pipeline.DECRYPTER, Pipeline.ENCRYPTER, new CipherEncoder(secretKey))
+                        .addBefore(Pipeline.FRAME_DECODER, Pipeline.DECRYPTER, new CipherDecoder(secretKey))
+                        .addBefore(Pipeline.FRAME_ENCODER, Pipeline.ENCRYPTER, new CipherEncoder(secretKey))
                     );
 
                     responseBuf.release();
@@ -106,13 +108,19 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     System.out.println("[+] Enabling compression for " + frontend.remoteAddress() + " (compression after: " + threshold + ")");
 
                     backend.pipeline()
-                        .addAfter(backend.pipeline().get(Pipeline.ENCRYPTER) != null ? Pipeline.ENCRYPTER : Pipeline.FRAME_ENCODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
-                        .addAfter(Pipeline.DECOMPRESSOR, Pipeline.COMPRESSOR, new PacketCompressor(threshold));
+                        .addAfter(Pipeline.FRAME_DECODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
+                        .addAfter(Pipeline.FRAME_ENCODER, Pipeline.COMPRESSOR, new PacketCompressor(threshold));
+
+                    int i2 = 0;
+                    for (Map.Entry<String, ChannelHandler> stringChannelHandlerEntry : backend.pipeline()) {
+                        System.out.println(i2++ + " " + stringChannelHandlerEntry.getKey());
+                    }
 
                     buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.LOGIN_SUCCESS == type) {
                     System.out.println("[*] Switching protocol stage to " + ProtocolPhase.PLAY);
+                    System.out.println(ByteBufUtil.prettyHexDump(buf));
                     AttributeUtils.update(Keys.PHASE_KEY, ProtocolPhase.PLAY, frontend, backend);
                 }
             }

@@ -1,13 +1,7 @@
 package gbx.proxy.utils;
 
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyFactory;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import javax.crypto.*;
@@ -35,7 +29,7 @@ public interface MinecraftEncryption {
     /**
      * Hashes the given server id using the public and the secret key.
      *
-     * @param serverId the server id
+     * @param serverId  the server id
      * @param publicKey the public key
      * @param secretKey the shared secret key
      * @return the hashed {@code serverId}
@@ -67,7 +61,7 @@ public interface MinecraftEncryption {
     /**
      * Decrypts the given data using the given key.
      *
-     * @param key the key
+     * @param key  the key
      * @param data the data
      * @return the decrypted data
      */
@@ -78,7 +72,7 @@ public interface MinecraftEncryption {
     /**
      * Encrypts the given data using the given key.
      *
-     * @param key the key
+     * @param key  the key
      * @param data the data
      * @return the encrypted data
      */
@@ -90,7 +84,7 @@ public interface MinecraftEncryption {
      * Creates an AES/CFB8/NoPadding cipher used for packet encryption / decryption.
      *
      * @param mode the mode
-     * @param key the key
+     * @param key  the key
      * @return the cipher
      */
     static Cipher createEncryptionCipher(int mode, Key key) {
@@ -107,7 +101,7 @@ public interface MinecraftEncryption {
      * Computes a message digest based on the given data with the given algorithm.
      *
      * @param algorithm the algorithm
-     * @param data the data
+     * @param data      the data
      * @return the digest
      */
     private static byte[] operateDigest(String algorithm, byte[]... data) {
@@ -128,7 +122,7 @@ public interface MinecraftEncryption {
      * Creates a new instance of the given key's cipher, then finishes the operation with the given data.
      *
      * @param mode the mode of the operation
-     * @param key the key
+     * @param key  the key
      * @param data the data
      * @return the result
      */

@@ -1,6 +1,7 @@
 package gbx.proxy.networking.pipeline.proxy;
 
 import gbx.proxy.networking.pipeline.Pipeline;
+import gbx.proxy.networking.pipeline.game.PacketSerializer;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * <br>
  * It also creates the connection between the backend server and the proxy.
  */
-public class FrontendChannelInitializer extends ChannelInitializer<Channel> {
+public class FrontendChannelInitializer extends DefaultChannelInitializer {
     private final ServerAddress address;
 
     public FrontendChannelInitializer(ServerAddress address) {
@@ -30,11 +31,9 @@ public class FrontendChannelInitializer extends ChannelInitializer<Channel> {
             ChannelFuture future = bootstrap.connect()
                 .addListener((ChannelFutureListener) f -> {
                     if (f.isSuccess()) {
-                        System.out.println("[+] Successfully connected " + frontend.remoteAddress() + " -> " + address);
                         // Flushing queued up packets
                         f.channel().flush();
                     } else {
-                        System.out.println("[-] Failed to connect to " + address);
                         f.channel().close();
                         f.cause().printStackTrace();
                         // Closing parent
@@ -42,8 +41,10 @@ public class FrontendChannelInitializer extends ChannelInitializer<Channel> {
                     }
                 });
 
-            DefaultChannelInitializer.INSTANCE.init(frontend);
-            frontend.pipeline().addLast(Pipeline.FRONTEND_HANDLER, new FrontendHandler(future.channel()));
+            super.initChannel(frontend);
+            frontend.pipeline()
+                .addLast(Pipeline.PACKET_SERIALIZER, new PacketSerializer())
+                .addLast(Pipeline.FRONTEND_HANDLER, new FrontendHandler(future.channel()));
         });
     }
 }
