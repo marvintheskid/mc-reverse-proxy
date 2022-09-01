@@ -84,22 +84,14 @@ public class FrontendHandler extends ChannelDuplexHandler {
                         serverId
                     );
 
-                    EncryptionResponse response = new EncryptionResponse(
+                    backend.writeAndFlush(new EncryptionResponse(
                         MinecraftEncryption.encryptData(publicKey, secretKey.getEncoded()),
                         MinecraftEncryption.encryptData(publicKey, original.verifyToken())
-                    );
-
-                    ByteBuf responseBuf = ctx.channel().alloc().buffer();
-                    responseBuf.retain();
-                    writeVarInt(responseBuf, PacketTypes.Login.Client.ENCRYPTION_RESPONSE.id(version));
-                    response.encode(responseBuf, version);
-
-                    backend.writeAndFlush(responseBuf).addListener((ChannelFutureListener) f -> f.channel().pipeline()
+                    )).addListener((ChannelFutureListener) f -> f.channel().pipeline()
                         .addBefore(Pipeline.FRAME_DECODER, Pipeline.DECRYPTER, new CipherDecoder(secretKey))
                         .addBefore(Pipeline.FRAME_ENCODER, Pipeline.ENCRYPTER, new CipherEncoder(secretKey))
                     );
 
-                    responseBuf.release();
                     buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.SET_COMPRESSION == type) {
