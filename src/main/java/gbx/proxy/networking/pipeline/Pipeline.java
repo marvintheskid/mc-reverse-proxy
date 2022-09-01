@@ -43,4 +43,9 @@ public interface Pipeline {
      * The identifier of the decrypter.
      */
     String DECRYPTER = "decrypter";
+
+    /**
+     * The identifier of the packet serializer.
+     */
+    String PACKET_SERIALIZER = "packet-serializer";
 }
