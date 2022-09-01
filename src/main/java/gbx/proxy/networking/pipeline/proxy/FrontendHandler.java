@@ -111,16 +111,10 @@ public class FrontendHandler extends ChannelDuplexHandler {
                         .addAfter(Pipeline.FRAME_DECODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
                         .addAfter(Pipeline.FRAME_ENCODER, Pipeline.COMPRESSOR, new PacketCompressor(threshold));
 
-                    int i2 = 0;
-                    for (Map.Entry<String, ChannelHandler> stringChannelHandlerEntry : backend.pipeline()) {
-                        System.out.println(i2++ + " " + stringChannelHandlerEntry.getKey());
-                    }
-
                     buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.LOGIN_SUCCESS == type) {
                     System.out.println("[*] Switching protocol stage to " + ProtocolPhase.PLAY);
-                    System.out.println(ByteBufUtil.prettyHexDump(buf));
                     AttributeUtils.update(Keys.PHASE_KEY, ProtocolPhase.PLAY, frontend, backend);
                 }
             }
