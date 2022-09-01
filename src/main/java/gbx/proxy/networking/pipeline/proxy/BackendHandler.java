@@ -7,6 +7,7 @@ import gbx.proxy.networking.ProtocolPhase;
 import gbx.proxy.networking.Version;
 import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
+import gbx.proxy.networking.packet.impl.handshake.client.LoginStart;
 import gbx.proxy.networking.packet.impl.handshake.client.SetProtocol;
 import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
@@ -64,12 +65,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                     AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
                     AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
                 } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    ByteBuf newMsg = ctx.channel().alloc().buffer();
-                    newMsg.retain();
-                    writeVarInt(newMsg, id);
-                    writeString(newMsg, ProxyBootstrap.NAME);
-
-                    super.write(ctx, newMsg, promise);
+                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
                     buf.release();
                     return;
                 }
