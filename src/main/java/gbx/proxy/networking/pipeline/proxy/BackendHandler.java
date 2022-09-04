@@ -12,10 +12,7 @@ import gbx.proxy.networking.packet.impl.handshake.client.SetProtocol;
 import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
 import static gbx.proxy.utils.ByteBufUtils.*;
@@ -56,7 +53,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                 int id = readVarInt(buf);
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
-                PacketType type = PacketTypes.find(ProtocolDirection.CLIENT, phase, id, version);
+                PacketType type = PacketTypes.findThrowing(ProtocolDirection.CLIENT, phase, id, version);
 
                 if (PacketTypes.Handshake.Client.SET_PROTOCOL == type) {
                     SetProtocol setProtocol = new SetProtocol();

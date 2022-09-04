@@ -68,10 +68,20 @@ public interface PacketTypes {
             return types.length > id ? types[id] : null;
         }
 
-        Version closest = Cache.CLOSEST_VERSION_CACHE.computeIfAbsent(version, __ -> Cache.findClosest(version));
+        Version closest = closestProtocolVersion(version);
         types = packetMap.get(closest);
 
         return types.length > id ? types[id] : null;
+    }
+
+    /**
+     * Returns the closest protocol version to the given version.
+     *
+     * @return the closest version
+     */
+    @NotNull
+    static Version closestProtocolVersion(@NotNull Version version) {
+        return Cache.CLOSEST_VERSION_CACHE.computeIfAbsent(version, __ -> Cache.findClosest(version));
     }
 
     /**

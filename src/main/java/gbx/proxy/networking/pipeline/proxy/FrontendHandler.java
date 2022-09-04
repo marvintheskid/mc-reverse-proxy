@@ -20,7 +20,6 @@ import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
 import gbx.proxy.utils.MinecraftEncryption;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +64,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                 int id = readVarInt(buf);
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
-                PacketType type = PacketTypes.find(ProtocolDirection.SERVER, phase, id, version);
+                PacketType type = PacketTypes.findThrowing(ProtocolDirection.SERVER, phase, id, version);
 
                 if (PacketTypes.Login.Server.ENCRYPTION_REQUEST == type) {
                     System.out.println("[+] Enabling encryption for " + frontend.remoteAddress());
