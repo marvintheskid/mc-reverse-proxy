@@ -1,5 +1,6 @@
 package gbx.proxy;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import gbx.proxy.networking.packet.PacketTypes;
@@ -21,13 +22,33 @@ import java.net.Proxy;
  * Entry point of the proxy.
  */
 public class ProxyBootstrap {
+    /**
+     * Boss event group.
+     */
     public static final EventLoopGroup BOSS_GROUP;
+    /**
+     * Worker event group.
+     */
     public static final EventLoopGroup WORKER_GROUP;
+    /**
+     * Netty channel type.
+     */
     public static final Class<? extends ServerChannel> CHANNEL_TYPE;
-
-    public static MinecraftSessionService SESSION_SERVICE;
+    /**
+     * The session service used for authentication.
+     */
+    public static MinecraftSessionService SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();;
+    /**
+     * The access token used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     */
     public static String ACCESS_TOKEN = "";
+    /**
+     * The undashed UUID used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     */
     public static String UUID = "";
+    /**
+     * The name used for authentication. If this is empty, then the proxy will forward the name sent by the client.
+     */
     public static String NAME = "";
 
     static {
@@ -41,7 +62,6 @@ public class ProxyBootstrap {
             CHANNEL_TYPE = NioServerSocketChannel.class;
         }
 
-        SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();
         PacketTypes.load();
     }
 
@@ -66,7 +86,6 @@ public class ProxyBootstrap {
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.IP_TOS, 0x18)
                 .localAddress(port);
-
             ChannelFuture future = bootstrap.bind()
                 .addListener((ChannelFutureListener) f -> {
                     if (f.isSuccess()) {
