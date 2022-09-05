@@ -62,9 +62,11 @@ public class BackendHandler extends ChannelDuplexHandler {
                     AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
                     AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
                 } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
-                    buf.release();
-                    return;
+                    if (!ProxyBootstrap.NAME.isBlank()) {
+                        super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
+                        buf.release();
+                        return;
+                    }
                 }
             }
         }
