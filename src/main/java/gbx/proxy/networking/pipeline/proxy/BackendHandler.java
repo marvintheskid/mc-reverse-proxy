@@ -15,6 +15,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.InetSocketAddress;
+
 import static gbx.proxy.utils.ByteBufUtils.*;
 
 /**
@@ -61,12 +63,21 @@ public class BackendHandler extends ChannelDuplexHandler {
 
                     AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
                     AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
-                } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    if (!ProxyBootstrap.NAME.isBlank()) {
-                        super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
+
+                    if (backend.remoteAddress() instanceof InetSocketAddress socketAddress) {
+                        super.write(ctx, new SetProtocol(
+                            setProtocol.protocolVersion(),
+                            socketAddress.getHostName(),
+                            socketAddress.getPort(),
+                            setProtocol.nextPhase()
+                        ), promise);
                         buf.release();
                         return;
                     }
+                } else if (PacketTypes.Login.Client.LOGIN_START == type) {
+                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
+                    buf.release();
+                    return;
                 }
             }
         }
