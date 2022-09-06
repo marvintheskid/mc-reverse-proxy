@@ -1,7 +1,6 @@
 package gbx.proxy.networking.pipeline.proxy;
 
 import gbx.proxy.networking.pipeline.Pipeline;
-import gbx.proxy.networking.pipeline.game.PacketSerializer;
 import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;
 
