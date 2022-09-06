@@ -24,7 +24,7 @@ public class LoginStart implements Packet {
 
     @Override
     public void encode(@NotNull ByteBuf buf, @NotNull Version version) {
-        writeString(buf, ProxyBootstrap.NAME);
+        writeString(buf, name);
     }
 
     @Override
