@@ -37,7 +37,7 @@ public class ProxyBootstrap {
     /**
      * The session service used for authentication.
      */
-    public static MinecraftSessionService SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();;
+    public static MinecraftSessionService SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();
     /**
      * The access token used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
      */
