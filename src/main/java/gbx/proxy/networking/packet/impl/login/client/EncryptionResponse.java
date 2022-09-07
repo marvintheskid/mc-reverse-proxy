@@ -14,12 +14,13 @@ public class EncryptionResponse implements Packet {
     private byte[] encryptedSecretKey;
     private byte[] encryptedVerifyToken;
 
+    public EncryptionResponse() {
+        this(null, null);
+    }
+
     public EncryptionResponse(byte[] encryptedSecretKey, byte[] encryptedVerifyToken) {
         this.encryptedSecretKey = encryptedSecretKey;
         this.encryptedVerifyToken = encryptedVerifyToken;
-    }
-
-    public EncryptionResponse() {
     }
 
     @Override

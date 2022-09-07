@@ -16,6 +16,17 @@ public class SetProtocol implements Packet {
     private int port;
     private ProtocolPhase nextPhase;
 
+    public SetProtocol() {
+        this(null, null, -1, null);
+    }
+
+    public SetProtocol(Version protocolVersion, String address, int port, ProtocolPhase nextPhase) {
+        this.protocolVersion = protocolVersion;
+        this.address = address;
+        this.port = port;
+        this.nextPhase = nextPhase;
+    }
+
     @Override
     public void encode(@NotNull ByteBuf buf, @NotNull Version version) {
         writeVarInt(buf, protocolVersion.version());

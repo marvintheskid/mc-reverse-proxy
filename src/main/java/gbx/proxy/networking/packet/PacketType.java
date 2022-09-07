@@ -16,6 +16,7 @@ public interface PacketType {
      *
      * @return the version map
      */
+    @NotNull
     Map<Integer, Integer> versionMap();
 
     /**
@@ -43,6 +44,7 @@ public interface PacketType {
      *
      * @return the phase of this packet
      */
+    @NotNull
     ProtocolPhase phase();
 
     /**
@@ -50,6 +52,7 @@ public interface PacketType {
      *
      * @return the direction of this packet
      */
+    @NotNull
     ProtocolDirection direction();
 
     /**

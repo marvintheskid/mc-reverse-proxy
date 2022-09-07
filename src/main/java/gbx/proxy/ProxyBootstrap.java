@@ -1,7 +1,10 @@
 package gbx.proxy;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftSessionService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import gbx.proxy.networking.packet.PacketTypes;
-import gbx.proxy.networking.pipeline.proxy.ProxyChannelInitializer;
+import gbx.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
@@ -12,22 +15,57 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.ResourceLeakDetector;
+
+import java.net.Proxy;
 
 /**
  * Entry point of the proxy.
  */
 public class ProxyBootstrap {
-    public static final EventLoopGroup BOSS_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
-    public static final EventLoopGroup WORKER_GROUP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-    public static final Class<? extends ServerChannel> CHANNEL_TYPE = Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
+    /**
+     * Boss event group.
+     */
+    public static final EventLoopGroup BOSS_GROUP;
+    /**
+     * Worker event group.
+     */
+    public static final EventLoopGroup WORKER_GROUP;
+    /**
+     * Netty channel type.
+     */
+    public static final Class<? extends ServerChannel> CHANNEL_TYPE;
+    /**
+     * The session service used for authentication.
+     */
+    public static MinecraftSessionService SESSION_SERVICE = new YggdrasilAuthenticationService(Proxy.NO_PROXY).createMinecraftSessionService();
+    /**
+     * The access token used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     */
+    public static String ACCESS_TOKEN = "";
+    /**
+     * The undashed UUID used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     */
+    public static String UUID = "";
+    /**
+     * The name used for authentication. If this is empty, then the proxy will forward the name sent by the client.
+     */
+    public static String NAME = "";
 
     static {
+        if (Epoll.isAvailable()) {
+            BOSS_GROUP = new EpollEventLoopGroup(1);
+            WORKER_GROUP = new EpollEventLoopGroup();
+            CHANNEL_TYPE = EpollServerSocketChannel.class;
+        } else {
+            BOSS_GROUP = new NioEventLoopGroup(1);
+            WORKER_GROUP = new NioEventLoopGroup();
+            CHANNEL_TYPE = NioServerSocketChannel.class;
+        }
+
         PacketTypes.load();
     }
 
     public static void main(String[] args) throws InterruptedException {
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");
 
@@ -43,12 +81,11 @@ public class ProxyBootstrap {
             ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(CHANNEL_TYPE)
                 .group(BOSS_GROUP, WORKER_GROUP)
-                .childHandler(new ProxyChannelInitializer(addr))
+                .childHandler(new FrontendChannelInitializer(addr))
                 .childOption(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.IP_TOS, 0x18)
                 .localAddress(port);
-
             ChannelFuture future = bootstrap.bind()
                 .addListener((ChannelFutureListener) f -> {
                     if (f.isSuccess()) {
@@ -56,7 +93,6 @@ public class ProxyBootstrap {
                     } else {
                         System.out.println("[-] Failed to bind on " + f.channel().localAddress());
                         f.cause().printStackTrace();
-                        f.channel().close();
                     }
                 });
 

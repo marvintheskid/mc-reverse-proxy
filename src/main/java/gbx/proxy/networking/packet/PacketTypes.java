@@ -89,6 +89,28 @@ public interface PacketTypes {
         default void id(@NotNull Version version, int id) {
             versionMap().put(version.version(), id);
         }
+
+        /**
+         * {@inheritDoc}
+         *
+         * @param version the version
+         * @return the id of this packet, or -1 if it doesn't exist for the given version
+         */
+        @Override
+        default int id(@NotNull Version version) {
+            return PacketType.super.id(Cache.CLOSEST_VERSION_CACHE.computeIfAbsent(version, __ -> Cache.findClosest(version)).version());
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * @param version the version
+         * @return the id of this packet, or -1 if it doesn't exist for the given version
+         */
+        @Override
+        default int id(int version) {
+            return PacketType.super.id(Cache.findClosest(Version.exact(version)).version());
+        }
     }
 
     /**
@@ -100,6 +122,7 @@ public interface PacketTypes {
         }
 
         @Override
+        @NotNull
         default ProtocolPhase phase() {
             return ProtocolPhase.HANDSHAKE;
         }
@@ -110,11 +133,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.CLIENT;
             }
@@ -131,6 +156,7 @@ public interface PacketTypes {
         }
 
         @Override
+        @NotNull
         default ProtocolPhase phase() {
             return ProtocolPhase.PLAY;
         }
@@ -148,11 +174,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.CLIENT;
             }
@@ -178,11 +206,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.SERVER;
             }
@@ -199,6 +229,7 @@ public interface PacketTypes {
         }
 
         @Override
+        @NotNull
         default ProtocolPhase phase() {
             return ProtocolPhase.STATUS;
         }
@@ -209,11 +240,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.CLIENT;
             }
@@ -225,11 +258,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.SERVER;
             }
@@ -246,6 +281,7 @@ public interface PacketTypes {
         }
 
         @Override
+        @NotNull
         default ProtocolPhase phase() {
             return ProtocolPhase.LOGIN;
         }
@@ -256,11 +292,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.CLIENT;
             }
@@ -272,11 +310,13 @@ public interface PacketTypes {
             private final Map<Integer, Integer> versionMap = new HashMap<>();
 
             @Override
+            @NotNull
             public Map<Integer, Integer> versionMap() {
                 return versionMap;
             }
 
             @Override
+            @NotNull
             public ProtocolDirection direction() {
                 return ProtocolDirection.SERVER;
             }

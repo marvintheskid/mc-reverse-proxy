@@ -15,6 +15,6 @@ public class VarIntFrameEncoder extends MessageToByteEncoder<ByteBuf> {
 
         out.ensureWritable(headerLen + len);
         writeVarInt(out, len);
-        out.writeBytes(in);
+        out.writeBytes(in, in.readerIndex(), len);
     }
 }
