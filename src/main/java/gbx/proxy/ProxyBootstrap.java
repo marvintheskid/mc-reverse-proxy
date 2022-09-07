@@ -5,6 +5,8 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
+import gbx.proxy.scripting.ScriptHandler;
+import gbx.proxy.scripting.Scripting;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
@@ -15,8 +17,18 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.graalvm.polyglot.*;
+import org.graalvm.polyglot.io.FileSystem;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import java.io.File;
+import java.io.IOException;
 import java.net.Proxy;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Entry point of the proxy.
@@ -34,6 +46,14 @@ public class ProxyBootstrap {
      * Netty channel type.
      */
     public static final Class<? extends ServerChannel> CHANNEL_TYPE;
+    /**
+     * The folder where the program was executed. For example, it's used for loading scripts.
+     */
+    public static final Path PARENT_FOLDER;
+    /**
+     * The script handler instance.
+     */
+    public static final ScriptHandler SCRIPT_HANDLER;
     /**
      * The session service used for authentication.
      */
@@ -62,10 +82,19 @@ public class ProxyBootstrap {
             CHANNEL_TYPE = NioServerSocketChannel.class;
         }
 
+        PARENT_FOLDER = Path.of("").toAbsolutePath();
+
+        try {
+            SCRIPT_HANDLER = new ScriptHandler();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize scripts", e);
+        }
+
         PacketTypes.load();
     }
 
     public static void main(String[] args) throws InterruptedException {
+        SCRIPT_HANDLER.forAllScripts(script -> script.invokeMember(Scripting.INITIALIZER));
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");
 
@@ -100,6 +129,7 @@ public class ProxyBootstrap {
         } finally {
             BOSS_GROUP.shutdownGracefully();
             WORKER_GROUP.shutdownGracefully();
+            SCRIPT_HANDLER.close();
         }
     }
 }
