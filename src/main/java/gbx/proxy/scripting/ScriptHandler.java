@@ -15,6 +15,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * A basic script handler.
+ */
 public class ScriptHandler implements Closeable {
     private static final List<ScriptProvider> PROVIDERS = List.of(ProxyContext.instance());
     private final Engine engine;

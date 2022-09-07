@@ -9,13 +9,17 @@ import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.packet.impl.handshake.client.LoginStart;
 import gbx.proxy.networking.packet.impl.handshake.client.SetProtocol;
+import gbx.proxy.scripting.Scripting;
 import gbx.proxy.utils.AttributeUtils;
 import gbx.proxy.utils.IndexRollback;
+import gbx.proxy.utils.Tristate;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static gbx.proxy.utils.ByteBufUtils.*;
 
@@ -48,6 +52,7 @@ public class BackendHandler extends ChannelDuplexHandler {
      */
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        final AtomicBoolean cancel = new AtomicBoolean(false);
         Channel backend = ctx.channel();
 
         if (msg instanceof ByteBuf buf) {
@@ -57,30 +62,53 @@ public class BackendHandler extends ChannelDuplexHandler {
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
                 PacketType type = PacketTypes.findThrowing(ProtocolDirection.CLIENT, phase, id, version);
 
-                if (PacketTypes.Handshake.Client.SET_PROTOCOL == type) {
-                    SetProtocol setProtocol = new SetProtocol();
-                    setProtocol.decode(buf, version);
+                // TODO: clean this up
+                ProxyBootstrap.SCRIPT_HANDLER.forAllScripts(script -> {
+                    try (IndexRollback ___ = IndexRollback.readerManual(buf)) {
+                        Tristate result = script.invokeMember(Scripting.CLIENT_TO_SERVER,
+                            ctx,
+                            frontend,
+                            buf,
+                            phase,
+                            type,
+                            promise
+                        ).as(Tristate.class);
 
-                    AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
-                    AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
-
-                    if (backend.remoteAddress() instanceof InetSocketAddress socketAddress) {
-                        super.write(ctx, new SetProtocol(
-                            setProtocol.protocolVersion(),
-                            socketAddress.getHostName(),
-                            socketAddress.getPort(),
-                            setProtocol.nextPhase()
-                        ), promise);
-                        buf.release();
-                        return;
+                        if (result != Tristate.NOT_SET) {
+                            cancel.set(result.booleanValue());
+                        }
                     }
-                } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
-                    buf.release();
-                    return;
+                });
+
+                if (!cancel.get()) {
+                    if (PacketTypes.Handshake.Client.SET_PROTOCOL == type) {
+                        SetProtocol setProtocol = new SetProtocol();
+                        setProtocol.decode(buf, version);
+
+                        AttributeUtils.update(Keys.PHASE_KEY, setProtocol.nextPhase(), frontend, backend);
+                        AttributeUtils.update(Keys.VERSION_KEY, setProtocol.protocolVersion(), frontend, backend);
+
+                        if (backend.remoteAddress() instanceof InetSocketAddress socketAddress) {
+                            super.write(ctx, new SetProtocol(
+                                setProtocol.protocolVersion(),
+                                socketAddress.getHostName(),
+                                socketAddress.getPort(),
+                                setProtocol.nextPhase()
+                            ), promise);
+                            cancel.set(true);
+                        }
+                    } else if (PacketTypes.Login.Client.LOGIN_START == type) {
+                        super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
+                        cancel.set(true);
+                    }
                 }
             }
+
+            if (!cancel.get()) {
+                super.write(ctx, msg, promise);
+            } else {
+                buf.release();
+            }
         }
-        super.write(ctx, msg, promise);
     }
 }
