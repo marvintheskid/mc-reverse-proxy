@@ -26,14 +26,21 @@ dependencies {
     val annotationsVersion = "23.0.0"
     val gsonVersion = "2.9.1"
     val authlibVersion = "3.5.41"
+    val graalVmVersion = "21.3.3"
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
 
-    shadow(group = "io.netty", name = "netty-all", version = nettyVersion)
-    shadow(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
-    shadow(group = "com.google.code.gson", name = "gson", version = gsonVersion)
-    shadow(group = "com.mojang", name = "authlib", version = authlibVersion)
+    implementation(group = "io.netty", name = "netty-all", version = nettyVersion)
+    implementation(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
+    implementation(group = "com.google.code.gson", name = "gson", version = gsonVersion)
+    implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
+    implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
+
+    implementation(group = "org.graalvm.sdk", name = "graal-sdk", version = graalVmVersion)
+    implementation(group = "org.graalvm.truffle", name = "truffle-api", version = graalVmVersion)
+    implementation(group = "org.graalvm.js", name = "js", version = graalVmVersion)
+    implementation(group = "org.graalvm.js", name = "js-scriptengine", version = graalVmVersion)
 }
 
 tasks.withType<ShadowJar> {
@@ -48,8 +55,12 @@ tasks.withType<ShadowJar> {
 
 tasks.withType<JavaCompile> {
     options.encoding = Charsets.UTF_8.name()
-    options.release.set(17)
     options.compilerArgs.add("--enable-preview")
+}
+
+java {
+    toolchain.vendor.set(JvmVendorSpec.GRAAL_VM)
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks.withType<ProcessResources> {
