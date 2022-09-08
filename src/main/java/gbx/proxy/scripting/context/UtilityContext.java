@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HexFormat;
 
 public final class UtilityContext implements ScriptProvider {
@@ -22,6 +23,10 @@ public final class UtilityContext implements ScriptProvider {
 
     public byte[] md5(byte[] bytes) {
         return resolveDigest("MD5").digest(bytes);
+    }
+
+    public String toBase64(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     public String toHex(byte[] bytes) {
