@@ -35,12 +35,10 @@ dependencies {
     implementation(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
     implementation(group = "com.google.code.gson", name = "gson", version = gsonVersion)
     implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
-    implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
 
     implementation(group = "org.graalvm.sdk", name = "graal-sdk", version = graalVmVersion)
     implementation(group = "org.graalvm.truffle", name = "truffle-api", version = graalVmVersion)
     implementation(group = "org.graalvm.js", name = "js", version = graalVmVersion)
-    implementation(group = "org.graalvm.js", name = "js-scriptengine", version = graalVmVersion)
 }
 
 tasks.withType<ShadowJar> {
@@ -55,12 +53,8 @@ tasks.withType<ShadowJar> {
 
 tasks.withType<JavaCompile> {
     options.encoding = Charsets.UTF_8.name()
+    options.release.set(17)
     options.compilerArgs.add("--enable-preview")
-}
-
-java {
-    toolchain.vendor.set(JvmVendorSpec.GRAAL_VM)
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks.withType<ProcessResources> {
