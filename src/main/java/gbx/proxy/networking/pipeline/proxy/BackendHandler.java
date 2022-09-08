@@ -64,6 +64,8 @@ public class BackendHandler extends ChannelDuplexHandler {
 
                 // TODO: clean this up
                 ProxyBootstrap.SCRIPT_HANDLER.forAllScripts(script -> {
+                    if (!script.hasMember(Scripting.CLIENT_TO_SERVER)) return;
+
                     try (IndexRollback ___ = IndexRollback.readerManual(buf)) {
                         Tristate result = script.invokeMember(Scripting.CLIENT_TO_SERVER,
                             ctx,
