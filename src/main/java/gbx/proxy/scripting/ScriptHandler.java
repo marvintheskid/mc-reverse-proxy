@@ -63,6 +63,8 @@ public class ScriptHandler implements Closeable {
      * @param valueConsumer the value consumer
      */
     public void forAllScripts(Consumer<Value> valueConsumer) {
+        if (scripts.isEmpty()) return;
+
         try (Context ctx = acquireContext()) {
             scripts.values().forEach(script -> {
                 Value evaluated = ctx.eval(script);
