@@ -2,6 +2,7 @@ package gbx.proxy.scripting;
 
 import gbx.proxy.ProxyBootstrap;
 import gbx.proxy.scripting.context.ProxyContext;
+import gbx.proxy.scripting.context.UtilityContext;
 import org.graalvm.polyglot.*;
 
 import java.io.Closeable;
@@ -19,7 +20,10 @@ import java.util.stream.Stream;
  * A basic script handler.
  */
 public class ScriptHandler implements Closeable {
-    private static final List<ScriptProvider> PROVIDERS = List.of(ProxyContext.instance());
+    private static final List<ScriptProvider> PROVIDERS = List.of(
+        ProxyContext.instance(),
+        UtilityContext.instance()
+    );
     private final Engine engine;
     private final Map<String, Source> scripts;
 
@@ -42,7 +46,9 @@ public class ScriptHandler implements Closeable {
                     },
                     file -> {
                         try {
-                            return Source.newBuilder("js", file.toFile()).build();
+                            return Source.newBuilder("js", file.toFile())
+                                .cached(true)
+                                .build();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

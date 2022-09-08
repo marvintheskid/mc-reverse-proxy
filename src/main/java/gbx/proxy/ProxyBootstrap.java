@@ -10,25 +10,16 @@ import gbx.proxy.scripting.Scripting;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
 import io.netty.bootstrap.ServerBootstrap;
-
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.graalvm.polyglot.*;
-import org.graalvm.polyglot.io.FileSystem;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Entry point of the proxy.
@@ -94,7 +85,12 @@ public class ProxyBootstrap {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        SCRIPT_HANDLER.forAllScripts(script -> script.invokeMember(Scripting.INITIALIZER));
+        SCRIPT_HANDLER.forAllScripts(script -> {
+            if (!script.hasMember(Scripting.INITIALIZER)) return;
+
+            script.invokeMember(Scripting.INITIALIZER);
+        });
+
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");
 
