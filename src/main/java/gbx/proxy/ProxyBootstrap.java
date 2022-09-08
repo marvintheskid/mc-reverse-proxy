@@ -85,11 +85,12 @@ public class ProxyBootstrap {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        SCRIPT_HANDLER.forAllScripts(script -> {
-            if (!script.hasMember(Scripting.INITIALIZER)) return;
-
-            script.invokeMember(Scripting.INITIALIZER);
-        });
+        // We want to execute the initializer using the persistent context, because we can't use values from dead contexts.
+        // This is required, because this way we can set the session service using the script initializer.
+        SCRIPT_HANDLER.forAllScripts(script -> script.executePersistent(value -> {
+            if (!value.hasMember(Scripting.INITIALIZER)) return;
+            value.invokeMember(Scripting.INITIALIZER);
+        }));
 
         int port = Integer.getInteger("port", 25565);
         String targetAddr = System.getProperty("target", ":25566");

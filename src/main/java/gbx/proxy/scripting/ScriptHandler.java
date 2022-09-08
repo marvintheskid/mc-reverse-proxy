@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +26,7 @@ public class ScriptHandler implements Closeable {
         UtilityContext.instance()
     );
     private final Engine engine;
-    private final Map<String, Source> scripts;
+    private final Map<String, Script> scripts;
 
     /**
      * Creates a new script handler, and loads all enabled scripts.
@@ -39,22 +40,35 @@ public class ScriptHandler implements Closeable {
                 .filter(file -> file.getFileName().toString().endsWith(".js"))
                 .filter(file -> !file.getFileName().toString().startsWith("-"))
                 .peek(file -> System.out.println("[Scripts] Loading " + file.getFileName() + "..."))
-                .collect(Collectors.toMap(
-                    file -> {
+                .map(file -> {
+                    try {
                         String name = file.getFileName().toString();
-                        return name.substring(0, name.lastIndexOf(".js"));
-                    },
-                    file -> {
-                        try {
-                            return Source.newBuilder("js", file.toFile())
-                                .cached(true)
-                                .build();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        Source source = Source.newBuilder("js", file.toFile())
+                            .cached(true)
+                            .build();
+
+                        return new Script(
+                            name.substring(0, name.lastIndexOf(".js")),
+                            source,
+                            this::acquireContext
+                        );
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                ));
+                })
+                .peek(Script::initialize)
+                .collect(Collectors.toMap(Script::name, Function.identity()));
         }
+    }
+
+    /**
+     * Iterates through all enabled scripts.
+     *
+     * @param scriptConsumer the script consumer
+     */
+    public void forAllScripts(Consumer<Script> scriptConsumer) {
+        if (scripts.isEmpty()) return;
+        scripts.values().forEach(scriptConsumer);
     }
 
     /**
@@ -62,15 +76,12 @@ public class ScriptHandler implements Closeable {
      *
      * @param valueConsumer the value consumer
      */
-    public void forAllScripts(Consumer<Value> valueConsumer) {
+    public void executeScripts(Consumer<Value> valueConsumer) {
         if (scripts.isEmpty()) return;
 
         try (Context ctx = acquireContext()) {
-            scripts.values().forEach(script -> {
-                Value evaluated = ctx.eval(script);
-                valueConsumer.accept(evaluated);
-            });
-        };
+            scripts.values().forEach(script -> script.execute(ctx, valueConsumer));
+        }
     }
 
     /**
@@ -91,6 +102,7 @@ public class ScriptHandler implements Closeable {
 
     @Override
     public void close() {
+        scripts.values().forEach(Script::close);
         engine.close();
     }
 }

@@ -62,7 +62,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                 PacketType type = PacketTypes.findThrowing(ProtocolDirection.CLIENT, phase, id, version);
 
                 // TODO: clean this up
-                ProxyBootstrap.SCRIPT_HANDLER.forAllScripts(script -> {
+                ProxyBootstrap.SCRIPT_HANDLER.executeScripts(script -> {
                     if (!script.hasMember(Scripting.CLIENT_TO_SERVER)) return;
 
                     try (IndexRollback ___ = IndexRollback.readerManual(buf)) {
