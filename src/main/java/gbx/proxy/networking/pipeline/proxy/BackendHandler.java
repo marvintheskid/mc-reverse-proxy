@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static gbx.proxy.utils.ByteBufUtils.*;
 
@@ -106,11 +105,12 @@ public class BackendHandler extends ChannelDuplexHandler {
                 }
             }
 
-            if (!cancel.get()) {
-                super.write(ctx, msg, promise);
-            } else {
+            if (cancel.get()) {
                 buf.release();
             }
+        }
+        if (!cancel.get()) {
+            super.write(ctx, msg, promise);
         }
     }
 }

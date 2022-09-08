@@ -78,7 +78,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     try (IndexRollback ___ = IndexRollback.readerManual(buf)) {
                         Tristate result = script.invokeMember(Scripting.SERVER_TO_CLIENT,
                             ctx,
-                            frontend,
+                            backend,
                             buf,
                             phase,
                             type,
@@ -115,6 +115,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                             .addBefore(Pipeline.FRAME_DECODER, Pipeline.DECRYPTER, new CipherDecoder(secretKey))
                             .addBefore(Pipeline.FRAME_ENCODER, Pipeline.ENCRYPTER, new CipherEncoder(secretKey))
                         );
+
                         cancel.set(true);
                     } else if (PacketTypes.Login.Server.SET_COMPRESSION == type) {
                         int threshold = readVarInt(buf);
@@ -131,12 +132,12 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     }
                 }
             }
-
-            if (!cancel.get()) {
-                super.write(ctx, msg, promise);
-            } else {
+            if (cancel.get()) {
                 buf.release();
             }
+        }
+        if (!cancel.get()) {
+            super.write(ctx, msg, promise);
         }
     }
 }
