@@ -1,9 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java")
+    kotlin("jvm") version "1.7.10"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -26,14 +28,25 @@ dependencies {
     val annotationsVersion = "23.0.0"
     val gsonVersion = "2.9.1"
     val authlibVersion = "3.5.41"
+    val kotlinVersion = "1.7.10"
+    val coroutinesVersion = "1.6.4"
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
 
-    shadow(group = "io.netty", name = "netty-all", version = nettyVersion)
-    shadow(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
-    shadow(group = "com.google.code.gson", name = "gson", version = gsonVersion)
-    shadow(group = "com.mojang", name = "authlib", version = authlibVersion)
+    implementation(group = "io.netty", name = "netty-all", version = nettyVersion)
+    implementation(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
+    implementation(group = "com.google.code.gson", name = "gson", version = gsonVersion)
+    implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
+
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-reflect", version = kotlinVersion)
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-common", version = kotlinVersion)
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm", version = kotlinVersion)
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm-host", version = kotlinVersion)
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-dependencies", version = kotlinVersion)
+    implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-dependencies-maven", version = kotlinVersion)
+
+    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = coroutinesVersion)
 }
 
 tasks.withType<ShadowJar> {
@@ -50,6 +63,10 @@ tasks.withType<JavaCompile> {
     options.encoding = Charsets.UTF_8.name()
     options.release.set(17)
     options.compilerArgs.add("--enable-preview")
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "17"
 }
 
 tasks.withType<ProcessResources> {
