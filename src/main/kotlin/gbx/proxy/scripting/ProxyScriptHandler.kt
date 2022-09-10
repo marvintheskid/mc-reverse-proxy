@@ -1,15 +1,15 @@
 package gbx.proxy.scripting
 
 import gbx.proxy.ProxyBootstrap
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.util.function.BiConsumer
 import java.util.function.Predicate
 import java.util.stream.Collectors
-import kotlin.reflect.full.functions
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.JvmScriptingHostConfigurationBuilder
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
@@ -21,10 +21,10 @@ class ProxyScriptHandler {
         private val SCRIPTS_FOLDER = ProxyBootstrap.PARENT_FOLDER.resolve("scripts")
         private val EXTENSION_PREDICATE: Predicate<Path> = Predicate { file -> file.fileName.toString().endsWith(EXTENSION) }
         private val ENABLED_PREDICATE: Predicate<Path> = Predicate { file -> !file.fileName.toString().startsWith("-") }
-        private val COMPILER_CONFIG = createJvmCompilationConfigurationFromTemplate<ProxyScript>()
+        private val COMPILER_CONFIG = createJvmCompilationConfigurationFromTemplate<ProxyScriptDefinition>()
     }
 
-    val scripts: MutableMap<String, Any>
+    private val scripts: MutableMap<String, ProxyScript>
 
     /**
      * Loads all scripts on startup.
@@ -36,11 +36,21 @@ class ProxyScriptHandler {
                 .filter(ENABLED_PREDICATE)
                 .peek { file -> println("[Scripts] Loading ${file.fileName}") }
                 .map(::loadScript)
+                .peek(ProxyScript::initialize)
                 .collect(Collectors.toMap(
-                    { it!!.first },
-                    { it!!.second }
+                    { it!!.name },
+                    { it!! }
                 ))
         }
+    }
+
+    /**
+     * Loops through all the scripts, and executes the given action.
+     *
+     * @param action the action
+     */
+    fun forEachScript(action: BiConsumer<Class<out Any>, ProxyScript>) {
+        scripts.values.forEach { action.accept(it.instance::class.java, it) }
     }
 
     /**
@@ -58,9 +68,12 @@ class ProxyScriptHandler {
             return
         }
 
-        if (enabledPath.toFile().exists())
+        if (enabledPath.toFile().exists()) {
             Files.move(enabledPath, disabledPath, StandardCopyOption.ATOMIC_MOVE)
+        }
+
         scripts.remove(name)
+            ?.apply { destruct() }
     }
 
     /**
@@ -81,7 +94,8 @@ class ProxyScriptHandler {
         if (disabledPath.toFile().exists())
             Files.move(disabledPath, enabledPath, StandardCopyOption.ATOMIC_MOVE)
         loadScript(enabledPath).apply {
-            scripts[first] = second
+            initialize()
+            scripts[this.name] = this
         }
     }
 
@@ -95,8 +109,9 @@ class ProxyScriptHandler {
         enableScript(name)
     }
 
-    private fun loadScript(file: Path): Pair<String, Any> {
+    private fun loadScript(file: Path): ProxyScript {
         val name = file.fileName.toString()
+        JvmScriptingHostConfigurationBuilder
         val script = BasicJvmScriptingHost().eval(
             file.toFile().toScriptSource(),
             COMPILER_CONFIG,
@@ -110,7 +125,7 @@ class ProxyScriptHandler {
             )
         }
 
-        return Pair(
+        return ProxyScript(
             name.substring(0, name.lastIndexOf(EXTENSION) - 1),
             script.returnValue.scriptInstance!!
         )
