@@ -82,9 +82,11 @@ public class BackendHandler extends ChannelDuplexHandler {
                         return;
                     }
                 } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
-                    buf.release();
-                    return;
+                    if (!ProxyBootstrap.NAME.isBlank()) {
+                        super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
+                        buf.release();
+                        return;
+                    }
                 }
             }
         }
