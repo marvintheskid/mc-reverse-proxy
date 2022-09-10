@@ -3,6 +3,14 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val junitVersion = "5.8.1"
+val nettyVersion = "4.1.77.Final"
+val annotationsVersion = "23.0.0"
+val gsonVersion = "2.9.1"
+val authlibVersion = "3.5.41"
+val kotlinVersion = "1.7.10"
+val coroutinesVersion = "1.6.4"
+
 plugins {
     id("java")
     kotlin("jvm") version "1.7.10"
@@ -23,14 +31,6 @@ repositories {
 }
 
 dependencies {
-    val junitVersion = "5.8.1"
-    val nettyVersion = "4.1.77.Final"
-    val annotationsVersion = "23.0.0"
-    val gsonVersion = "2.9.1"
-    val authlibVersion = "3.5.41"
-    val kotlinVersion = "1.7.10"
-    val coroutinesVersion = "1.6.4"
-
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
 
@@ -45,7 +45,6 @@ dependencies {
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm-host", version = kotlinVersion)
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-dependencies", version = kotlinVersion)
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-scripting-dependencies-maven", version = kotlinVersion)
-
     implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = coroutinesVersion)
 }
 
