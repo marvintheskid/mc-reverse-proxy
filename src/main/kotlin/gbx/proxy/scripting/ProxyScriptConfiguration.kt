@@ -14,7 +14,7 @@ private val DEPENDENCY_RESOLVER = CompoundDependenciesResolver(
 )
 
 object ProxyScriptConfiguration : ScriptCompilationConfiguration({
-    defaultImports(DependsOn::class, Repository::class)
+    defaultImports(Entrypoint::class, Destructor::class, DependsOn::class, Repository::class)
 
     jvm {
         dependenciesFromCurrentContext(wholeClasspath = true)
