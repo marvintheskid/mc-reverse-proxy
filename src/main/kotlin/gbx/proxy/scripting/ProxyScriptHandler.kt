@@ -122,7 +122,9 @@ class ProxyScriptHandler {
                     .filter {
                         it.severity == ScriptDiagnostic.Severity.ERROR
                             || it.severity == ScriptDiagnostic.Severity.FATAL
-                            || it.message.contains("DependencyResolutionException")
+                            || (it.severity == ScriptDiagnostic.Severity.WARNING
+                                && it.code == ScriptDiagnostic.unspecifiedError
+                                && it.location != null)
                     }
                     .joinToString("\n") { it.render(withSeverity = false) },
                 result.reports.find { it.exception != null }?.exception
