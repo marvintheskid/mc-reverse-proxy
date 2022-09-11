@@ -111,22 +111,22 @@ class ProxyScriptHandler {
 
     private fun loadScript(file: Path): ProxyScript {
         val name = file.fileName.toString()
-        JvmScriptingHostConfigurationBuilder
+
         val script = BasicJvmScriptingHost().eval(
             file.toFile().toScriptSource(),
             COMPILER_CONFIG,
             null
         ).valueOr { result ->
-                throw RuntimeException(
-                    result.reports
-                        .filter {
-                            it.severity == ScriptDiagnostic.Severity.ERROR
-                                || it.severity == ScriptDiagnostic.Severity.FATAL
-                                || it.message.contains("DependencyResolutionException")
-                        }
-                        .joinToString("\n") { it.exception?.toString() ?: it.message },
-                    result.reports.find { it.exception != null }?.exception
-                )
+            throw RuntimeException(
+                result.reports
+                    .filter {
+                        it.severity == ScriptDiagnostic.Severity.ERROR
+                            || it.severity == ScriptDiagnostic.Severity.FATAL
+                            || it.message.contains("DependencyResolutionException")
+                    }
+                    .joinToString("\n") { it.render(withSeverity = false) },
+                result.reports.find { it.exception != null }?.exception
+            )
         }
 
         return ProxyScript(
