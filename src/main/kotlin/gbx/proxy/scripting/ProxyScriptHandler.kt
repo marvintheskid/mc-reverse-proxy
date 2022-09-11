@@ -117,12 +117,16 @@ class ProxyScriptHandler {
             COMPILER_CONFIG,
             null
         ).valueOr { result ->
-            throw RuntimeException(
-                result.reports
-                    .filter { it.severity == ScriptDiagnostic.Severity.ERROR }
-                    .joinToString("\n") { it.exception?.toString() ?: it.message },
-                result.reports.find { it.exception != null }?.exception
-            )
+                throw RuntimeException(
+                    result.reports
+                        .filter {
+                            it.severity == ScriptDiagnostic.Severity.ERROR
+                                || it.severity == ScriptDiagnostic.Severity.FATAL
+                                || it.message.contains("DependencyResolutionException")
+                        }
+                        .joinToString("\n") { it.exception?.toString() ?: it.message },
+                    result.reports.find { it.exception != null }?.exception
+                )
         }
 
         return ProxyScript(

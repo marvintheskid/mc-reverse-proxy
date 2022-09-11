@@ -9,8 +9,6 @@ import gbx.proxy.networking.Version;
 import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
-import gbx.proxy.scripting.ProxyScriptConfiguration;
-import gbx.proxy.scripting.ProxyScriptDefinition;
 import gbx.proxy.scripting.ProxyScriptHandler;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
