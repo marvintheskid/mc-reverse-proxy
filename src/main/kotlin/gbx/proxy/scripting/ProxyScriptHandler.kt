@@ -9,7 +9,6 @@ import java.util.function.Predicate
 import java.util.stream.Collectors
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
-import kotlin.script.experimental.jvm.JvmScriptingHostConfigurationBuilder
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
@@ -132,7 +131,7 @@ class ProxyScriptHandler {
         }
 
         return ProxyScript(
-            name.substring(0, name.lastIndexOf(EXTENSION) - 1),
+            name.substring(0, name.lastIndexOf(".$EXTENSION")),
             script.returnValue.scriptInstance!!
         )
     }
