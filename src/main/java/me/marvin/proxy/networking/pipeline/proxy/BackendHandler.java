@@ -1,5 +1,6 @@
 package me.marvin.proxy.networking.pipeline.proxy;
 
+import me.marvin.proxy.Proxy;
 import me.marvin.proxy.ProxyBootstrap;
 import me.marvin.proxy.networking.Keys;
 import me.marvin.proxy.networking.ProtocolDirection;
@@ -24,9 +25,11 @@ import static me.marvin.proxy.utils.ByteBufUtils.*;
  * The backend handler.
  */
 public class BackendHandler extends ChannelDuplexHandler {
+    private final Proxy proxy;
     private final Channel frontend;
 
-    public BackendHandler(Channel frontend) {
+    public BackendHandler(Proxy proxy, Channel frontend) {
+        this.proxy = proxy;
         this.frontend = frontend;
     }
 
@@ -57,7 +60,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
                 PacketType type = PacketTypes.findThrowing(ProtocolDirection.CLIENT, phase, id, version);
-                Tristate cancelPackets = ProxyBootstrap.callListeners(type, buf, ctx, version);
+                Tristate cancelPackets = proxy.callListeners(type, buf, ctx, version);
 
                 if (cancelPackets.booleanValue()) {
                     buf.clear();
@@ -82,9 +85,11 @@ public class BackendHandler extends ChannelDuplexHandler {
                         return;
                     }
                 } else if (PacketTypes.Login.Client.LOGIN_START == type) {
-                    super.write(ctx, new LoginStart(ProxyBootstrap.NAME), promise);
-                    buf.release();
-                    return;
+                    if (!proxy.name().isBlank()) {
+                        super.write(ctx, new LoginStart(proxy.name()), promise);
+                        buf.release();
+                        return;
+                    }
                 }
             }
         }

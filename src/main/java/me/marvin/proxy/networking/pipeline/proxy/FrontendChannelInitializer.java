@@ -1,5 +1,6 @@
 package me.marvin.proxy.networking.pipeline.proxy;
 
+import me.marvin.proxy.Proxy;
 import me.marvin.proxy.networking.pipeline.Pipeline;
 import me.marvin.proxy.utils.ServerAddress;
 import io.netty.bootstrap.Bootstrap;
@@ -12,10 +13,10 @@ import org.jetbrains.annotations.NotNull;
  * It also creates the connection between the backend server and the proxy.
  */
 public class FrontendChannelInitializer extends DefaultChannelInitializer {
-    private final ServerAddress address;
+    private final Proxy proxy;
 
-    public FrontendChannelInitializer(ServerAddress address) {
-        this.address = address;
+    public FrontendChannelInitializer(Proxy proxy) {
+        this.proxy = proxy;
     }
 
     @Override
@@ -24,8 +25,8 @@ public class FrontendChannelInitializer extends DefaultChannelInitializer {
             Bootstrap bootstrap = new Bootstrap()
                 .group(frontend.eventLoop())
                 .channel(frontend.getClass())
-                .handler(new BackendChannelInitializer(frontend))
-                .remoteAddress(address.toInetAddress());
+                .handler(new BackendChannelInitializer(proxy, frontend))
+                .remoteAddress(proxy.address().toInetAddress());
 
             ChannelFuture future = bootstrap.connect()
                 .addListener((ChannelFutureListener) f -> {
@@ -42,7 +43,7 @@ public class FrontendChannelInitializer extends DefaultChannelInitializer {
 
             super.initChannel(frontend);
             frontend.pipeline()
-                .addLast(Pipeline.FRONTEND_HANDLER, new FrontendHandler(future.channel()));
+                .addLast(Pipeline.FRONTEND_HANDLER, new FrontendHandler(proxy, future.channel()));
         });
     }
 }

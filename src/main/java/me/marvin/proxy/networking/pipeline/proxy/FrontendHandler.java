@@ -2,6 +2,7 @@ package me.marvin.proxy.networking.pipeline.proxy;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
+import me.marvin.proxy.Proxy;
 import me.marvin.proxy.ProxyBootstrap;
 import me.marvin.proxy.networking.Keys;
 import me.marvin.proxy.networking.ProtocolDirection;
@@ -34,9 +35,11 @@ import static me.marvin.proxy.utils.ByteBufUtils.*;
  * The frontend handler.
  */
 public class FrontendHandler extends ChannelDuplexHandler {
+    private final Proxy proxy;
     private final Channel backend;
 
-    public FrontendHandler(Channel backend) {
+    public FrontendHandler(Proxy proxy, Channel backend) {
+        this.proxy = proxy;
         this.backend = backend;
     }
 
@@ -66,7 +69,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
                 PacketType type = PacketTypes.findThrowing(ProtocolDirection.SERVER, phase, id, version);
-                Tristate cancelPackets = ProxyBootstrap.callListeners(type, buf, ctx, version);
+                Tristate cancelPackets = proxy.callListeners(type, buf, ctx, version);
 
                 if (cancelPackets.booleanValue()) {
                     buf.clear();
@@ -84,9 +87,9 @@ public class FrontendHandler extends ChannelDuplexHandler {
 
                     String serverId = new BigInteger(MinecraftEncryption.hashServerId(original.hashedServerId(), publicKey, secretKey)).toString(16);
 
-                    ProxyBootstrap.SESSION_SERVICE.joinServer(
-                        new GameProfile(UUIDTypeAdapter.fromString(ProxyBootstrap.UUID), null),
-                        ProxyBootstrap.ACCESS_TOKEN,
+                    proxy.sessionService().joinServer(
+                        new GameProfile(UUIDTypeAdapter.fromString(proxy.uuid()), null),
+                        proxy.accessToken(),
                         serverId
                     );
 
