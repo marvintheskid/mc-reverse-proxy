@@ -17,6 +17,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.Proxy;
+import java.nio.file.Path;
 
 /**
  * Entry point of the proxy.
@@ -34,6 +35,10 @@ public class ProxyBootstrap {
      * Netty channel type.
      */
     public static final Class<? extends ServerChannel> CHANNEL_TYPE;
+    /**
+     * The folder where the program was executed. For example, it's used for loading scripts.
+     */
+    public static final Path PARENT_FOLDER;
     /**
      * The session service used for authentication.
      */
@@ -62,6 +67,7 @@ public class ProxyBootstrap {
             CHANNEL_TYPE = NioServerSocketChannel.class;
         }
 
+        PARENT_FOLDER = Path.of("").toAbsolutePath();
         PacketTypes.load();
     }
 
