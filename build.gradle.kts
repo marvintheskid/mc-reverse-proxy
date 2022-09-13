@@ -42,7 +42,7 @@ tasks.withType<ShadowJar> {
     exclude("META-INF/versions/**")
 
     manifest {
-        attributes["Main-Class"] = "gbx.proxy.Bootstrap"
+        attributes["Main-Class"] = "me.marvin.proxy.ProxyBootstrap"
     }
 }
 
