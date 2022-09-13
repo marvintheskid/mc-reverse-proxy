@@ -97,7 +97,7 @@ public class Proxy {
 
     public Proxy(@Range(from = 0, to = 65535) int port, @NotNull String targetAddress, @NotNull Path parentFolder) {
         this.port = port;
-        this.address = AddressResolver.getServerAddress(targetAddress);
+        this.address = ServerAddress.parse(targetAddress);
         this.parentFolder = parentFolder;
         this.listeners = new ArrayList<>();
         this.sessionService = new YggdrasilAuthenticationService(java.net.Proxy.NO_PROXY).createMinecraftSessionService();
@@ -220,7 +220,7 @@ public class Proxy {
      */
     @NotNull
     public Proxy address(@NotNull String targetAddress) {
-        this.address = AddressResolver.getServerAddress(targetAddress);
+        this.address = ServerAddress.parse(targetAddress);
         return this;
     }
 
