@@ -3,12 +3,18 @@ package gbx.proxy;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import gbx.proxy.networking.PacketListener;
+import gbx.proxy.networking.RegisteredPacketListener;
+import gbx.proxy.networking.Version;
+import gbx.proxy.networking.packet.PacketType;
 import gbx.proxy.networking.packet.PacketTypes;
 import gbx.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
 import gbx.proxy.utils.AddressResolver;
 import gbx.proxy.utils.ServerAddress;
+import gbx.proxy.utils.Tristate;
 import io.netty.bootstrap.ServerBootstrap;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -17,6 +23,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.Proxy;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entry point of the proxy.
@@ -34,6 +43,14 @@ public class ProxyBootstrap {
      * Netty channel type.
      */
     public static final Class<? extends ServerChannel> CHANNEL_TYPE;
+    /**
+     * The folder where the program was executed. For example, it's used for loading scripts.
+     */
+    public static final Path PARENT_FOLDER;
+    /**
+     * The registered packet listeners.
+     */
+    public static final List<RegisteredPacketListener> PACKET_LISTENERS;
     /**
      * The session service used for authentication.
      */
@@ -62,6 +79,8 @@ public class ProxyBootstrap {
             CHANNEL_TYPE = NioServerSocketChannel.class;
         }
 
+        PARENT_FOLDER = Path.of("").toAbsolutePath();
+        PACKET_LISTENERS = new ArrayList<>();
         PacketTypes.load();
     }
 
@@ -101,5 +120,57 @@ public class ProxyBootstrap {
             BOSS_GROUP.shutdownGracefully();
             WORKER_GROUP.shutdownGracefully();
         }
+    }
+
+    /**
+     * Registers the given listeners with the given owner.
+     *
+     * @param owner the owner
+     * @param listeners the listeners
+     */
+    public static void registerListeners(Object owner, PacketListener... listeners) {
+        for (PacketListener listener : listeners) {
+            PACKET_LISTENERS.add(new RegisteredPacketListener(owner, listener));
+        }
+        PACKET_LISTENERS.sort(null);
+    }
+
+    /**
+     * Unregisters the given owner or the listeners themselves.
+     *
+     * @param objects the objects
+     */
+    public static void unregisterListeners(Object... objects) {
+        for (Object object : objects) {
+            PACKET_LISTENERS.removeIf(listener -> {
+                if (object instanceof PacketListener packetListener) {
+                    return listener.listener() == packetListener;
+                } else {
+                    return listener.owner() == object;
+                }
+            });
+        }
+    }
+
+    /**
+     * Calls all the packet listeners.
+     *
+     * @param type      the packet type
+     * @param buf       the buffer
+     * @param context   the netty context
+     * @param version   the version
+     * @return false if the server should consume the packet, otherwise true
+     */
+    public static Tristate callListeners(PacketType type, ByteBuf buf, ChannelHandlerContext context, Version version) {
+        Tristate cancelled = Tristate.NOT_SET;
+
+        for (RegisteredPacketListener listener : PACKET_LISTENERS) {
+            Tristate newState = listener.listener().handle(type, buf, context, version, cancelled);
+            if (newState != Tristate.NOT_SET) {
+                cancelled = newState;
+            }
+        }
+
+        return cancelled;
     }
 }
