@@ -3,7 +3,6 @@ package me.marvin.proxy.networking.pipeline.proxy;
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
 import me.marvin.proxy.Proxy;
-import me.marvin.proxy.ProxyBootstrap;
 import me.marvin.proxy.networking.Keys;
 import me.marvin.proxy.networking.ProtocolDirection;
 import me.marvin.proxy.networking.ProtocolPhase;

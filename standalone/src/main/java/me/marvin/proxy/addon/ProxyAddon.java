@@ -2,7 +2,6 @@ package me.marvin.proxy.addon;
 
 import me.marvin.proxy.Proxy;
 import me.marvin.proxy.networking.PacketListener;
-import me.marvin.proxy.networking.RegisteredPacketListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
