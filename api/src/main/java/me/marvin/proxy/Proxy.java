@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
 /**
@@ -33,13 +34,10 @@ import java.util.function.Predicate;
  */
 public class Proxy {
     /**
-     * Boss event group.
+     * Event group factory.
      */
-    public static final EventLoopGroup BOSS_GROUP;
-    /**
-     * Worker event group.
-     */
-    public static final EventLoopGroup WORKER_GROUP;
+    private static final IntFunction<EventLoopGroup> GROUP_FACTORY;
+
     /**
      * Netty channel type.
      */
@@ -47,18 +45,24 @@ public class Proxy {
 
     static {
         if (Epoll.isAvailable()) {
-            BOSS_GROUP = new EpollEventLoopGroup(1);
-            WORKER_GROUP = new EpollEventLoopGroup();
+            GROUP_FACTORY = EpollEventLoopGroup::new;
             CHANNEL_TYPE = EpollServerSocketChannel.class;
         } else {
-            BOSS_GROUP = new NioEventLoopGroup(1);
-            WORKER_GROUP = new NioEventLoopGroup();
+            GROUP_FACTORY = NioEventLoopGroup::new;
             CHANNEL_TYPE = NioServerSocketChannel.class;
         }
 
         PacketTypes.load();
     }
 
+    /**
+     * Boss event group.
+     */
+    private final EventLoopGroup bossGroup;
+    /**
+     * Worker event group.
+     */
+    private final EventLoopGroup workerGroup;
     /**
      * The port to which the proxy binds.
      */
@@ -97,6 +101,8 @@ public class Proxy {
     }
 
     public Proxy(@Range(from = 0, to = 65535) int port, @NotNull String targetAddress, @NotNull Path parentFolder) {
+        this.bossGroup = GROUP_FACTORY.apply(1);
+        this.workerGroup = GROUP_FACTORY.apply(0);
         this.port = port;
         this.address = ServerAddress.parse(targetAddress);
         this.parentFolder = parentFolder;
@@ -118,7 +124,7 @@ public class Proxy {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(CHANNEL_TYPE)
-                .group(BOSS_GROUP, WORKER_GROUP)
+                .group(bossGroup, workerGroup)
                 .childHandler(new FrontendChannelInitializer(this))
                 .childOption(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
@@ -136,8 +142,8 @@ public class Proxy {
 
             future.channel().closeFuture().sync();
         } finally {
-            BOSS_GROUP.shutdownGracefully();
-            WORKER_GROUP.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
 
         return this;
