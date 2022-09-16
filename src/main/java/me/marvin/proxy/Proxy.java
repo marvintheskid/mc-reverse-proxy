@@ -13,7 +13,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import me.marvin.proxy.networking.PacketListener;
-import me.marvin.proxy.networking.RegisteredPacketListener;
 import me.marvin.proxy.networking.Version;
 import me.marvin.proxy.networking.packet.PacketType;
 import me.marvin.proxy.networking.packet.PacketTypes;
@@ -25,7 +24,9 @@ import org.jetbrains.annotations.Range;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Represents the proxy itself.
@@ -69,7 +70,7 @@ public class Proxy {
     /**
      * The registered packet listeners.
      */
-    private final List<RegisteredPacketListener> listeners;
+    private final List<PacketListener> listeners;
     /**
      * The target server's address.
      */
@@ -144,31 +145,29 @@ public class Proxy {
     /**
      * Registers the given listeners with the given owner.
      *
-     * @param owner     the owner
-     * @param listeners the listeners
+     * @param packetListeners the listeners
      */
-    public void registerListeners(Object owner, PacketListener... listeners) {
-        for (PacketListener listener : listeners) {
-            this.listeners.add(new RegisteredPacketListener(owner, listener));
-        }
-        this.listeners.sort(null);
+    public void registerListeners(PacketListener... packetListeners) {
+        listeners.addAll(Arrays.asList(packetListeners));
+        listeners.sort(null);
     }
 
     /**
-     * Unregisters the given owner or the listeners themselves.
+     * Unregisters the listeners matching the given predicate.
      *
-     * @param objects the objects
+     * @param predicate the predicate
      */
-    public void unregisterListeners(Object... objects) {
-        for (Object object : objects) {
-            listeners.removeIf(listener -> {
-                if (object instanceof PacketListener packetListener) {
-                    return listener.listener() == packetListener;
-                } else {
-                    return listener.owner() == object;
-                }
-            });
-        }
+    public void unregisterListeners(Predicate<PacketListener> predicate) {
+        listeners.removeIf(predicate);
+    }
+
+    /**
+     * Unregisters the given listener.
+     *
+     * @param packetListener the listener
+     */
+    public void unregisterListener(PacketListener packetListener) {
+        listeners.remove(packetListener);
     }
 
     /**
@@ -183,8 +182,8 @@ public class Proxy {
     public Tristate callListeners(PacketType type, ByteBuf buf, ChannelHandlerContext context, Version version) {
         Tristate cancelled = Tristate.NOT_SET;
 
-        for (RegisteredPacketListener listener : listeners) {
-            Tristate newState = listener.listener().handle(type, buf, context, version, cancelled);
+        for (PacketListener listener : listeners) {
+            Tristate newState = listener.handle(type, buf, context, version, cancelled);
             if (newState != Tristate.NOT_SET) {
                 cancelled = newState;
             }
