@@ -30,10 +30,10 @@ dependencies {
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
 
-    shadow(group = "io.netty", name = "netty-all", version = nettyVersion)
-    shadow(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
-    shadow(group = "com.google.code.gson", name = "gson", version = gsonVersion)
-    shadow(group = "com.mojang", name = "authlib", version = authlibVersion)
+    implementation(group = "io.netty", name = "netty-all", version = nettyVersion)
+    implementation(group = "org.jetbrains", name = "annotations", version = annotationsVersion)
+    implementation(group = "com.google.code.gson", name = "gson", version = gsonVersion)
+    implementation(group = "com.mojang", name = "authlib", version = authlibVersion)
 }
 
 tasks.withType<ShadowJar> {
