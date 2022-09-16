@@ -36,7 +36,7 @@ public class Proxy {
     /**
      * Event group factory.
      */
-    private static final IntFunction<EventLoopGroup> GROUP_FACTORY;
+    public static final IntFunction<EventLoopGroup> GROUP_FACTORY;
 
     /**
      * Netty channel type.
