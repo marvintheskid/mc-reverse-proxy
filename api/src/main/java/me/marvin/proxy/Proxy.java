@@ -92,7 +92,7 @@ public class Proxy {
      */
     private String name;
 
-    public Proxy(int port, String targetAddress) {
+    public Proxy(@Range(from = 0, to = 65535) int port, @NotNull String targetAddress) {
         this(port, targetAddress, Path.of("").toAbsolutePath());
     }
 
@@ -113,6 +113,7 @@ public class Proxy {
      * @return this proxy
      * @throws InterruptedException if {@link Future#sync()} throws an {@link InterruptedException}
      */
+    @NotNull
     public Proxy start() throws InterruptedException {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()

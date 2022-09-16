@@ -1,7 +1,6 @@
 package me.marvin.proxy.networking.pipeline.proxy;
 
 import me.marvin.proxy.Proxy;
-import me.marvin.proxy.ProxyBootstrap;
 import me.marvin.proxy.networking.Keys;
 import me.marvin.proxy.networking.ProtocolDirection;
 import me.marvin.proxy.networking.ProtocolPhase;
