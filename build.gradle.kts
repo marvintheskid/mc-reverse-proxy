@@ -57,6 +57,5 @@ subprojects {
     tasks.withType<ShadowJar> {
         exclude("META-INF/**.txt")
         exclude("META-INF/maven/**")
-        exclude("META-INF/versions/**")
     }
 }

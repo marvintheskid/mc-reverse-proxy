@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 dependencies {
@@ -13,7 +14,10 @@ dependencies {
 }
 
 tasks.withType<ShadowJar> {
+    transform(Log4j2PluginsCacheFileTransformer::class.java)
+
     manifest {
         attributes["Main-Class"] = "me.marvin.proxy.ProxyBootstrap"
+        attributes["Multi-Release"] = "true"
     }
 }
