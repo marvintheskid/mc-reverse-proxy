@@ -45,8 +45,8 @@ public class ProxyAddonHandler {
      * @throws IOException if {@link Files#walk(Path, FileVisitOption...)}} fails
      */
     public ProxyAddonHandler(Proxy proxy) throws IOException {
-        try (Stream<Path> scriptsFolder = Files.walk(proxy.parentFolder().resolve(FOLDER))) {
-            this.loaders = scriptsFolder
+        try (Stream<Path> addonsFolder = Files.walk(Files.createDirectories(proxy.parentFolder().resolve(FOLDER)))) {
+            this.loaders = addonsFolder
                 .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
                 .peek(file -> System.out.println("[Addons] Loading " + file.getFileName() + "..."))
                 .map(file -> {

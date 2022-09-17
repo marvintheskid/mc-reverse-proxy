@@ -76,6 +76,10 @@ public class Proxy {
      */
     private final List<PacketListener> listeners;
     /**
+     * The proxy channel.
+     */
+    private Channel channel;
+    /**
      * The target server's address.
      */
     private ServerAddress address;
@@ -120,7 +124,7 @@ public class Proxy {
      * @throws InterruptedException if {@link Future#sync()} throws an {@link InterruptedException}
      */
     @NotNull
-    public Proxy start() throws InterruptedException {
+    public Proxy start(ChannelFutureListener listener) throws InterruptedException {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(CHANNEL_TYPE)
@@ -131,20 +135,29 @@ public class Proxy {
                 .childOption(ChannelOption.IP_TOS, 0x18)
                 .localAddress(port);
             ChannelFuture future = bootstrap.bind()
-                .addListener((ChannelFutureListener) f -> {
-                    if (f.isSuccess()) {
-                        System.out.println("[!] Listening on " + f.channel().localAddress());
-                    } else {
-                        System.out.println("[-] Failed to bind on " + f.channel().localAddress());
-                        f.cause().printStackTrace();
-                    }
-                });
+                .addListener(listener);
 
-            future.channel().closeFuture().sync();
+            channel = future.channel();
+            channel.closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+
+        return this;
+    }
+
+    /**
+     * Shuts down this proxy immediately.
+     *
+     * @return this proxy
+     * @throws InterruptedException if {@link Future#await()} throws an {@link InterruptedException}
+     */
+    @NotNull
+    public Proxy shutdown() throws InterruptedException {
+        channel.close().await();
+        bossGroup.shutdownGracefully().await();
+        workerGroup.shutdownGracefully().await();
 
         return this;
     }
@@ -206,6 +219,16 @@ public class Proxy {
      */
     public int port() {
         return port;
+    }
+
+    /**
+     * Returns the proxy server channel.
+     *
+     * @return the channel
+     */
+    @NotNull
+    public Channel channel() {
+        return channel;
     }
 
     /**
