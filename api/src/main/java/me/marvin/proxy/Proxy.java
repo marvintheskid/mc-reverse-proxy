@@ -129,28 +129,20 @@ public class Proxy {
      *
      * @throws InterruptedException if {@link Future#sync()} throws an {@link InterruptedException}
      */
-    @NotNull
-    public Proxy start(ChannelFutureListener listener) throws InterruptedException {
-        try {
-            ServerBootstrap bootstrap = new ServerBootstrap()
-                .channel(CHANNEL_TYPE)
-                .group(bossGroup, workerGroup)
-                .childHandler(new FrontendChannelInitializer(this))
-                .childOption(ChannelOption.SO_REUSEADDR, true)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.IP_TOS, 0x18)
-                .localAddress(port);
-            ChannelFuture future = bootstrap.bind()
-                .addListener(listener);
+    public void start(ChannelFutureListener listener) throws InterruptedException {
+        ServerBootstrap bootstrap = new ServerBootstrap()
+            .channel(CHANNEL_TYPE)
+            .group(bossGroup, workerGroup)
+            .childHandler(new FrontendChannelInitializer(this))
+            .childOption(ChannelOption.SO_REUSEADDR, true)
+            .childOption(ChannelOption.TCP_NODELAY, true)
+            .childOption(ChannelOption.IP_TOS, 0x18)
+            .localAddress(port);
+        ChannelFuture future = bootstrap.bind()
+            .addListener(listener);
 
-            channel = future.channel();
-            channel.closeFuture().sync();
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-        }
-
-        return this;
+        channel = future.channel();
+        channel.closeFuture().sync();
     }
 
     /**
@@ -158,13 +150,10 @@ public class Proxy {
      *
      * @throws InterruptedException if {@link Future#await()} throws an {@link InterruptedException}
      */
-    @NotNull
-    public Proxy shutdown() throws InterruptedException {
-        channel.close().await();
-        bossGroup.shutdownGracefully().await();
-        workerGroup.shutdownGracefully().await();
-
-        return this;
+    public void shutdown() throws InterruptedException {
+        if (channel != null) {
+            channel.close().await();
+        }
     }
 
     /**
