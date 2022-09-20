@@ -37,7 +37,7 @@ public record ProxyAddonInfo(String name, String main, String version, int prior
         }
     }
 
-    private static <E extends JsonElement, T> T get(JsonObject obj, String path, Function<E, T> transformer) {
+    private static <T> T get(JsonObject obj, String path, Function<? super JsonElement, T> transformer) {
         T result = getOr(obj, path, null, transformer);
 
         if (result != null) {
@@ -47,11 +47,11 @@ public record ProxyAddonInfo(String name, String main, String version, int prior
         throw new NullPointerException("missing required json field: '" + path + "'");
     }
 
-    private static <E extends JsonElement, T> T getOr(JsonObject obj, String path, T defaultValue, Function<E, T> transformer) {
+    private static <T> T getOr(JsonObject obj, String path, T defaultValue, Function<? super JsonElement, T> transformer) {
         JsonElement element = obj.get(path);
 
         if (element != null) {
-            return transformer.apply((E) element);
+            return transformer.apply(element);
         }
 
         return defaultValue;
