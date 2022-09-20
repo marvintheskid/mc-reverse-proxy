@@ -47,7 +47,7 @@ public abstract class ProxyAddon {
      *
      * @param listeners the listeners
      */
-    public void registerListeners(PacketListener... listeners) {
+    protected void registerListeners(PacketListener... listeners) {
         RegisteredPacketListener[] registeredListeners = new RegisteredPacketListener[listeners.length];
         for (int i = 0; i < listeners.length; i++) {
             registeredListeners[i] = new RegisteredPacketListener(this, listeners[i]);
@@ -60,7 +60,7 @@ public abstract class ProxyAddon {
      *
      * @param objects the objects
      */
-    public void unregisterListeners(Object... objects) {
+    protected void unregisterListeners(Object... objects) {
         proxy.unregisterListeners(listener -> {
             for (Object object : objects) {
                 if (listener == object) return true;

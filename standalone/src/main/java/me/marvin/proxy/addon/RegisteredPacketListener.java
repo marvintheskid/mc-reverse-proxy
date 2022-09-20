@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * @param owner the owner
  * @param listener the listener
  */
-public record RegisteredPacketListener(Object owner, PacketListener listener) implements PacketListener {
+record RegisteredPacketListener(Object owner, PacketListener listener) implements PacketListener {
     @Override
     public byte priority() {
         return listener.priority();
