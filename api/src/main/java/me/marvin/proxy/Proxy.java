@@ -1,8 +1,5 @@
 package me.marvin.proxy;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -17,7 +14,9 @@ import me.marvin.proxy.networking.Version;
 import me.marvin.proxy.networking.packet.PacketType;
 import me.marvin.proxy.networking.packet.PacketTypes;
 import me.marvin.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
+import me.marvin.proxy.utils.GameProfile;
 import me.marvin.proxy.utils.ServerAddress;
+import me.marvin.proxy.utils.SessionService;
 import me.marvin.proxy.utils.Tristate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,13 +91,13 @@ public class Proxy {
     /**
      * The session service used for authentication.
      */
-    private MinecraftSessionService sessionService;
+    private SessionService sessionService;
     /**
-     * The access token used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     * The access token used by {@link SessionService#joinServer(GameProfile, String, String)} during authentication.
      */
     private String accessToken;
     /**
-     * The undashed UUID used by {@link MinecraftSessionService#joinServer(GameProfile, String, String)} during authentication.
+     * The undashed UUID used by {@link SessionService#joinServer(GameProfile, String, String)} during authentication.
      */
     private String uuid;
     /**
@@ -118,7 +117,7 @@ public class Proxy {
         this.address = ServerAddress.parse(targetAddress);
         this.parentFolder = parentFolder;
         this.listeners = new ArrayList<>();
-        this.sessionService = new YggdrasilAuthenticationService(java.net.Proxy.NO_PROXY).createMinecraftSessionService();
+        this.sessionService = SessionService.DEFAULT;
         this.accessToken = "";
         this.uuid = "";
         this.name = "";
@@ -273,7 +272,7 @@ public class Proxy {
      * @return the session service
      */
     @NotNull
-    public MinecraftSessionService sessionService() {
+    public SessionService sessionService() {
         return sessionService;
     }
 
@@ -284,7 +283,7 @@ public class Proxy {
      * @return this proxy
      */
     @NotNull
-    public Proxy sessionService(@NotNull MinecraftSessionService sessionService) {
+    public Proxy sessionService(@NotNull SessionService sessionService) {
         this.sessionService = sessionService;
         return this;
     }

@@ -1,7 +1,5 @@
 package me.marvin.proxy.networking.pipeline.proxy;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.util.UUIDTypeAdapter;
 import me.marvin.proxy.Proxy;
 import me.marvin.proxy.networking.Keys;
 import me.marvin.proxy.networking.ProtocolDirection;
@@ -16,10 +14,7 @@ import me.marvin.proxy.networking.pipeline.game.CipherDecoder;
 import me.marvin.proxy.networking.pipeline.game.CipherEncoder;
 import me.marvin.proxy.networking.pipeline.game.PacketCompressor;
 import me.marvin.proxy.networking.pipeline.game.PacketDecompressor;
-import me.marvin.proxy.utils.AttributeUtils;
-import me.marvin.proxy.utils.IndexRollback;
-import me.marvin.proxy.utils.MinecraftEncryption;
-import me.marvin.proxy.utils.Tristate;
+import me.marvin.proxy.utils.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.util.UUID;
 
 import static me.marvin.proxy.utils.ByteBufUtils.*;
 
@@ -87,7 +83,13 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     String serverId = new BigInteger(MinecraftEncryption.hashServerId(original.hashedServerId(), publicKey, secretKey)).toString(16);
 
                     proxy.sessionService().joinServer(
-                        new GameProfile(UUIDTypeAdapter.fromString(proxy.uuid()), null),
+                        GameProfile.gameProfile(
+                            new UUID(
+                                Long.parseLong(proxy.uuid().substring(0, 16)),
+                                Long.parseLong(proxy.uuid().substring(16))
+                            ),
+                            proxy.name()
+                        ),
                         proxy.accessToken(),
                         serverId
                     );
