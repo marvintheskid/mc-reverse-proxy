@@ -3,15 +3,15 @@
     <Appenders>
         <TerminalConsole name="TerminalConsole">
             <PatternLayout>
-                <MarkerPatternSelector defaultPattern="%highlightError{[%d{HH:mm:ss}] [%logger/%level]: %minecraftFormatting{%msg}%n%xEx}" disableAnsi="${tca:disableAnsi}">
-                    <PatternMatch key="FORWARDED" pattern="%highlightError{[%d{HH:mm:ss}] [%level]: %minecraftFormatting{%msg}%n%xEx}"/>;
+                <MarkerPatternSelector defaultPattern="%highlightError{[%d{HH:mm:ss} %level]: [%logger] %minecraftFormatting{%msg}%n%xEx}" disableAnsi="${tca:disableAnsi}">
+                    <PatternMatch key="FORWARDED" pattern="%highlightError{[%d{HH:mm:ss} %level]: %minecraftFormatting{%msg}%n%xEx}"/>;
                 </MarkerPatternSelector>
             </PatternLayout>
         </TerminalConsole>
 
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout>
-                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level]: [%logger] %minecraftFormatting{%msg}{strip}%n%xEx{full}"/>
+                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss} %level]: [%t] [%logger] %minecraftFormatting{%msg}{strip}%n%xEx{full}"/>
             </PatternLayout>
             <Policies>
                 <TimeBasedTriggeringPolicy />

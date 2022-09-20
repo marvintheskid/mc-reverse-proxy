@@ -19,6 +19,8 @@ import me.marvin.proxy.networking.packet.PacketTypes;
 import me.marvin.proxy.networking.pipeline.proxy.FrontendChannelInitializer;
 import me.marvin.proxy.utils.ServerAddress;
 import me.marvin.proxy.utils.Tristate;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -55,6 +57,10 @@ public class Proxy {
         PacketTypes.load();
     }
 
+    /**
+     * The logger of this proxy.
+     */
+    private final Logger logger;
     /**
      * Boss event group.
      */
@@ -105,6 +111,7 @@ public class Proxy {
     }
 
     public Proxy(@Range(from = 0, to = 65535) int port, @NotNull String targetAddress, @NotNull Path parentFolder) {
+        this.logger = LogManager.getLogger("proxy");
         this.bossGroup = GROUP_FACTORY.apply(1);
         this.workerGroup = GROUP_FACTORY.apply(0);
         this.port = port;
@@ -120,7 +127,6 @@ public class Proxy {
     /**
      * Starts this proxy.
      *
-     * @return this proxy
      * @throws InterruptedException if {@link Future#sync()} throws an {@link InterruptedException}
      */
     @NotNull
@@ -150,7 +156,6 @@ public class Proxy {
     /**
      * Shuts down this proxy immediately.
      *
-     * @return this proxy
      * @throws InterruptedException if {@link Future#await()} throws an {@link InterruptedException}
      */
     @NotNull
@@ -210,6 +215,16 @@ public class Proxy {
         }
 
         return cancelled;
+    }
+
+    /**
+     * Returns the logger of this proxy.
+     *
+     * @return the logger
+     */
+    @NotNull
+    public Logger logger() {
+        return logger;
     }
 
     /**

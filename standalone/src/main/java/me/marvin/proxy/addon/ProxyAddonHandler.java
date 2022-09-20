@@ -3,6 +3,8 @@ package me.marvin.proxy.addon;
 import com.google.gson.JsonParser;
 import me.marvin.proxy.Proxy;
 import me.marvin.proxy.utils.Tuple;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -28,6 +30,7 @@ import java.util.stream.Stream;
  * A basic proxy addon handler.
  */
 public class ProxyAddonHandler {
+    private static final Logger LOGGER = LogManager.getLogger("addons");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]{1,32}$");
     private static final String FOLDER = "addons";
     private static final String EXTENSION = ".jar";
@@ -48,7 +51,7 @@ public class ProxyAddonHandler {
         try (Stream<Path> addonsFolder = Files.walk(Files.createDirectories(proxy.parentFolder().resolve(FOLDER)))) {
             this.loaders = addonsFolder
                 .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
-                .peek(file -> System.out.println("[Addons] Loading " + file.getFileName() + "..."))
+                .peek(file -> LOGGER.info("Loading {}...", file.getFileName()))
                 .map(file -> {
                     try {
                         ProxyAddonInfo info = readInfo(file);
@@ -63,7 +66,7 @@ public class ProxyAddonHandler {
 
                         return Tuple.tuple(file.toUri().toURL(), info);
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("An error occurred while loading {}", file.getFileName(), ex);
                     }
                     return null;
                 })
@@ -73,7 +76,7 @@ public class ProxyAddonHandler {
                     try {
                         return new ProxyAddonLoader(new URL[]{t.first()}, t.second(), proxy.parentFolder().resolve(FOLDER), proxy);
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("An error occurred while loading {}", t.second().name(), ex);
                     }
                     return null;
                 })
@@ -82,11 +85,17 @@ public class ProxyAddonHandler {
         }
         this.loaders.forEach(loader -> {
             loader.setOtherLoaders(this.loaders);
-            System.out.println("[Addons] Enabling " + loader.info().name() + " " + loader.info().version() + (loader.info().author() == null ? "" : " by " + loader.info().author()) + "...");
+            LOGGER.info("Enabling {} {}{}",  loader.info().name(), loader.info().version(), (loader.info().author() == null ? "" : " by " + loader.info().author()) + "...");
             loader.addonInstance().onEnable();
         });
     }
 
+    /**
+     * Tries to create a proxy addon info object by reading the given file.
+     *
+     * @param path the path to the file
+     * @return a proxy addon info object, or null
+     */
     @Nullable
     private static ProxyAddonInfo readInfo(Path path) {
         try (JarInputStream in = new JarInputStream(new BufferedInputStream(new FileInputStream(path.toFile())))) {

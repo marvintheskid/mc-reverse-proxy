@@ -8,7 +8,6 @@ import java.io.IOException;
  * Entry point of the proxy.
  */
 public class ProxyBootstrap {
-
     public static void main(String[] args) throws IOException {
         Loggers.setupForwarding();
 

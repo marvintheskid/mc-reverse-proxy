@@ -2,6 +2,7 @@ package me.marvin.proxy.addon;
 
 import me.marvin.proxy.Proxy;
 import me.marvin.proxy.networking.PacketListener;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -13,17 +14,20 @@ public abstract class ProxyAddon {
     protected ProxyAddonInfo info;
     protected Path rootFolder;
     protected Proxy proxy;
+    protected Logger logger;
 
     /**
      * Initializes this proxy addon.
      *
      * @param info       the info
      * @param rootFolder the root folder where this addon is located
+     * @param logger     the logger
      */
-    void initialize(@NotNull ProxyAddonInfo info, @NotNull Path rootFolder, @NotNull Proxy proxy) {
+    void initialize(@NotNull ProxyAddonInfo info, @NotNull Path rootFolder, @NotNull Proxy proxy, @NotNull Logger logger) {
         this.info = info;
         this.rootFolder = rootFolder;
         this.proxy = proxy;
+        this.logger = logger;
     }
 
     /**

@@ -76,7 +76,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                 }
 
                 if (PacketTypes.Login.Server.ENCRYPTION_REQUEST == type) {
-                    System.out.println("[+] Enabling encryption for " + frontend.remoteAddress());
+                    proxy.logger().info("Enabling encryption for {}", frontend.remoteAddress());
 
                     EncryptionRequest original = new EncryptionRequest();
                     original.decode(buf, version);
@@ -104,7 +104,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     return;
                 } else if (PacketTypes.Login.Server.SET_COMPRESSION == type) {
                     int threshold = readVarInt(buf);
-                    System.out.println("[+] Enabling compression for " + frontend.remoteAddress() + " (compression after: " + threshold + ")");
+                    proxy.logger().info("Enabling compression for {} (compression after: {})", frontend.remoteAddress(), threshold);
 
                     backend.pipeline()
                         .addAfter(Pipeline.FRAME_DECODER, Pipeline.DECOMPRESSOR, new PacketDecompressor(threshold))
@@ -113,7 +113,7 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     buf.release();
                     return;
                 } else if (PacketTypes.Login.Server.LOGIN_SUCCESS == type) {
-                    System.out.println("[*] Switching protocol stage to " + ProtocolPhase.PLAY);
+                    proxy.logger().info("Switching protocol stage to {} for {}", ProtocolPhase.PLAY, frontend.remoteAddress());
                     AttributeUtils.update(Keys.PHASE_KEY, ProtocolPhase.PLAY, frontend, backend);
                 }
             }

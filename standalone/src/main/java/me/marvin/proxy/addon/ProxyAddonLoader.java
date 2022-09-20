@@ -1,6 +1,7 @@
 package me.marvin.proxy.addon;
 
 import me.marvin.proxy.Proxy;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -27,7 +28,7 @@ public class ProxyAddonLoader extends URLClassLoader {
         this.info = info;
         Class<? extends ProxyAddon> entrypoint = (Class<? extends ProxyAddon>) Class.forName(info.main(), true, this);
         this.addonInstance = entrypoint.getDeclaredConstructor().newInstance();
-        this.addonInstance.initialize(info, rootFolder, proxy);
+        this.addonInstance.initialize(info, rootFolder, proxy, LogManager.getLogger(info.name()));
     }
 
     /**
