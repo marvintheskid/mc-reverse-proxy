@@ -52,6 +52,47 @@ public class InteractiveProxy extends SimpleTerminalConsole {
         }, "shutdown", "goodbye", "stop");
 
         commandTree.register(args -> {
+            if (args.length != 1) {
+                logger.info("Usage: setname [name]");
+                return false;
+            }
+
+            proxy.name(args[0]);
+            logger.info("Set name to: '{}'", proxy.name());
+            return true;
+        }, "setname");
+
+        commandTree.register(args -> {
+            if (args.length != 1) {
+                logger.info("Usage: setuuid [undashed uuid]");
+                return false;
+            }
+
+            proxy.uuid(args[0]);
+            logger.info("Set uuid to: '{}'", proxy.uuid());
+            return true;
+        }, "setuuid");
+
+        commandTree.register(args -> {
+            if (args.length != 1) {
+                logger.info("Usage: settoken [access token]");
+                return false;
+            }
+
+            proxy.accessToken(args[0]);
+            logger.info("Set access token to: '{}'", proxy.accessToken());
+            return true;
+        }, "settoken");
+
+        commandTree.register(args -> {
+            logger.info("Current credentials:");
+            logger.info(" Name: '{}'", proxy.name());
+            logger.info(" UUID: '{}'", proxy.uuid());
+            logger.info(" Token: '{}'", proxy.accessToken());
+            return true;
+        }, "credentials");
+
+        commandTree.register(args -> {
             StringBuilder threadDump = new StringBuilder(System.lineSeparator());
             ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
             for (ThreadInfo threadInfo : threadMXBean.dumpAllThreads(true, true)) {
