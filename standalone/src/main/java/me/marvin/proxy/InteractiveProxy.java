@@ -8,6 +8,10 @@ import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.concurrent.CountDownLatch;
 
 public class InteractiveProxy extends SimpleTerminalConsole {
     private volatile boolean isRunning;
@@ -60,18 +64,35 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
     @Override
     public void start() {
+        CountDownLatch lock = new CountDownLatch(1);
+
+        new Thread(() -> {
+            try {
+                proxy.start(f -> {
+                    if (f.isSuccess()) {
+                        logger.info("Listening on {}", f.channel().localAddress());
+                        isRunning = true;
+                        lock.countDown();
+                    } else {
+                        logger.fatal("Failed to bind on :{}", proxy.port(), f.cause());
+                        lock.countDown();
+                    }
+                });
+            } catch (InterruptedException e) {
+                logger.fatal("Interrupted while starting up the proxy", e);
+                lock.countDown();
+            }
+        }).start();
+
         try {
-            proxy.start(f -> {
-                if (f.isSuccess()) {
-                    logger.info("Listening on {}", f.channel().localAddress());
-                    super.start();
-                } else {
-                    logger.fatal("Failed to bind on :{}", proxy.port(), f.cause());
-                    shutdown();
-                }
-            });
+            lock.await();
+            if (isRunning()) {
+                super.start();
+            } else {
+                shutdown();
+            }
         } catch (InterruptedException e) {
-            logger.fatal("Interrupted while starting up", e);
+            logger.fatal("Interrupted while starting up the console", e);
             shutdown();
         }
     }
