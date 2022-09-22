@@ -2,6 +2,7 @@ package me.marvin.proxy.addon;
 
 import com.google.gson.JsonParser;
 import me.marvin.proxy.Proxy;
+import me.marvin.proxy.commands.impl.CommandTree;
 import me.marvin.proxy.utils.Tuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,9 +46,10 @@ public class ProxyAddonHandler {
      * Creates a new addon handler, and loads all addons.
      *
      * @param proxy the proxy instance
+     * @param commandTree the command tree
      * @throws IOException if {@link Files#walk(Path, FileVisitOption...)}} fails
      */
-    public ProxyAddonHandler(Proxy proxy) throws IOException {
+    public ProxyAddonHandler(Proxy proxy, CommandTree commandTree) throws IOException {
         try (Stream<Path> addonsFolder = Files.walk(Files.createDirectories(proxy.parentFolder().resolve(FOLDER)))) {
             this.loaders = addonsFolder
                 .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
@@ -74,7 +76,7 @@ public class ProxyAddonHandler {
                 .sorted(Comparator.comparing(Tuple::second))
                 .map(t -> {
                     try {
-                        return new ProxyAddonLoader(new URL[]{t.first()}, t.second(), proxy.parentFolder().resolve(FOLDER), proxy);
+                        return new ProxyAddonLoader(new URL[]{t.first()}, t.second(), proxy.parentFolder().resolve(FOLDER), proxy, commandTree);
                     } catch (Exception ex) {
                         LOGGER.error("An error occurred while loading {}", t.second().name(), ex);
                     }

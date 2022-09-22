@@ -2,19 +2,25 @@ package me.marvin.proxy;
 
 import io.netty.channel.epoll.Epoll;
 import me.marvin.proxy.addon.ProxyAddonHandler;
+import me.marvin.proxy.commands.impl.CommandTree;
+import me.marvin.proxy.utils.*;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.concurrent.CountDownLatch;
 
 public class InteractiveProxy extends SimpleTerminalConsole {
     private volatile boolean isRunning;
     private final Proxy proxy;
     private final ProxyAddonHandler addonHandler;
     private final Logger logger;
+    private final CommandTree commandTree;
 
     public InteractiveProxy(int port, String targetAddr) throws IOException {
-        this.isRunning = true;
         proxy = new Proxy(port, targetAddr);
         logger = proxy.logger();
         if (Epoll.isAvailable()) {
@@ -22,23 +28,71 @@ public class InteractiveProxy extends SimpleTerminalConsole {
         }
         logger.info("Resolving address... ({})", targetAddr);
         logger.info("Resolved server address: {}", proxy.address());
-        addonHandler = new ProxyAddonHandler(proxy);
+        commandTree = new CommandTree();
+        registerBuiltinCommands();
+        addonHandler = new ProxyAddonHandler(proxy, commandTree);
+    }
+
+    private void registerBuiltinCommands() {
+        commandTree.register(args -> {
+            if (args.length != 1) {
+                logger.info("Usage: setip [ip]");
+                return false;
+            }
+
+            ServerAddress prev = proxy.address();
+            proxy.address(args[0]);
+            logger.info("Changed address: '{}' -> '{}'", prev, proxy.address());
+            return true;
+        }, "setip", "ip");
+
+        commandTree.register(args -> {
+            shutdown();
+            return true;
+        }, "shutdown", "goodbye", "stop");
+
+        commandTree.register(args -> {
+            StringBuilder threadDump = new StringBuilder(System.lineSeparator());
+            ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+            for (ThreadInfo threadInfo : threadMXBean.dumpAllThreads(true, true)) {
+                threadDump.append(threadInfo.toString());
+            }
+            logger.info(threadDump.toString());
+            return true;
+        }, "threaddump");
     }
 
     @Override
     public void start() {
+        CountDownLatch lock = new CountDownLatch(1);
+
+        new Thread(() -> {
+            try {
+                proxy.start(f -> {
+                    if (f.isSuccess()) {
+                        logger.info("Listening on {}", f.channel().localAddress());
+                        isRunning = true;
+                        lock.countDown();
+                    } else {
+                        logger.fatal("Failed to bind on :{}", proxy.port(), f.cause());
+                        lock.countDown();
+                    }
+                });
+            } catch (InterruptedException e) {
+                logger.fatal("Interrupted while starting up the proxy", e);
+                lock.countDown();
+            }
+        }).start();
+
         try {
-            proxy.start(f -> {
-                if (f.isSuccess()) {
-                    logger.info("Listening on {}", f.channel().localAddress());
-                    super.start();
-                } else {
-                    logger.fatal("Failed to bind on :{}", proxy.port(), f.cause());
-                    shutdown();
-                }
-            });
+            lock.await();
+            if (isRunning()) {
+                super.start();
+            } else {
+                shutdown();
+            }
         } catch (InterruptedException e) {
-            logger.fatal("Interrupted while starting up", e);
+            logger.fatal("Interrupted while starting up the console", e);
             shutdown();
         }
     }
@@ -50,7 +104,9 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
     @Override
     protected void runCommand(String command) {
-        logger.info("Unknown command '{}'", command);
+        if (commandTree.execute(command) == Tristate.NOT_SET) {
+            logger.info("Unknown command '{}'", command);
+        }
     }
 
     @Override

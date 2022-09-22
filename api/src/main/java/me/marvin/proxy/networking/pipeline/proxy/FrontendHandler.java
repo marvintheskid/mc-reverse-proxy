@@ -81,12 +81,11 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     PublicKey publicKey = original.publicKey();
 
                     String serverId = new BigInteger(MinecraftEncryption.hashServerId(original.hashedServerId(), publicKey, secretKey)).toString(16);
-
                     proxy.sessionService().joinServer(
                         GameProfile.gameProfile(
                             new UUID(
-                                Long.parseLong(proxy.uuid().substring(0, 16)),
-                                Long.parseLong(proxy.uuid().substring(16))
+                                Long.parseUnsignedLong(proxy.uuid().substring(0, 16), 16),
+                                Long.parseUnsignedLong(proxy.uuid().substring(16), 16)
                             ),
                             proxy.name()
                         ),

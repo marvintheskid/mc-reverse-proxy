@@ -1,6 +1,7 @@
 package me.marvin.proxy.addon;
 
 import me.marvin.proxy.Proxy;
+import me.marvin.proxy.commands.impl.CommandTree;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,13 +23,13 @@ public class ProxyAddonLoader extends URLClassLoader {
     private List<ProxyAddonLoader> otherLoaders;
 
     @SuppressWarnings("unchecked")
-    ProxyAddonLoader(URL[] urls, ProxyAddonInfo info, Path rootFolder, Proxy proxy) throws ReflectiveOperationException {
+    ProxyAddonLoader(URL[] urls, ProxyAddonInfo info, Path rootFolder, Proxy proxy, CommandTree commandTree) throws ReflectiveOperationException {
         super(urls, Proxy.class.getClassLoader());
         this.otherLoaders = List.of();
         this.info = info;
         Class<? extends ProxyAddon> entrypoint = (Class<? extends ProxyAddon>) Class.forName(info.main(), true, this);
         this.addonInstance = entrypoint.getDeclaredConstructor().newInstance();
-        this.addonInstance.initialize(info, rootFolder, proxy, LogManager.getLogger(info.name()));
+        this.addonInstance.initialize(info, rootFolder, proxy, LogManager.getLogger(info.name()), commandTree);
     }
 
     /**
