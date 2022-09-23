@@ -66,7 +66,7 @@ public class CommandTree extends CommandEntry {
             }
         }
 
-        if (current instanceof ExecutableCommandEntry executable) {
+        if (current instanceof ExecutableCommandEntry executable && executable.command() != null) {
             parts = Arrays.copyOfRange(parts, start == -1 ? parts.length : start, parts.length);
             return Tristate.fromBoolean(executable.command().execute(parts));
         }
