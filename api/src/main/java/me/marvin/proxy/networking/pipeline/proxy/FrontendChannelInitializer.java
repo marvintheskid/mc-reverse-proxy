@@ -2,7 +2,6 @@ package me.marvin.proxy.networking.pipeline.proxy;
 
 import me.marvin.proxy.Proxy;
 import me.marvin.proxy.networking.pipeline.Pipeline;
-import me.marvin.proxy.utils.ServerAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import org.jetbrains.annotations.NotNull;

@@ -81,17 +81,24 @@ public class FrontendHandler extends ChannelDuplexHandler {
                     PublicKey publicKey = original.publicKey();
 
                     String serverId = new BigInteger(MinecraftEncryption.hashServerId(original.hashedServerId(), publicKey, secretKey)).toString(16);
-                    proxy.sessionService().joinServer(
-                        GameProfile.gameProfile(
-                            new UUID(
-                                Long.parseUnsignedLong(proxy.uuid().substring(0, 16), 16),
-                                Long.parseUnsignedLong(proxy.uuid().substring(16), 16)
+                    try {
+                        proxy.sessionService().joinServer(
+                            GameProfile.gameProfile(
+                                new UUID(
+                                    Long.parseUnsignedLong(proxy.uuid().substring(0, 16), 16),
+                                    Long.parseUnsignedLong(proxy.uuid().substring(16), 16)
+                                ),
+                                proxy.name()
                             ),
-                            proxy.name()
-                        ),
-                        proxy.accessToken(),
-                        serverId
-                    );
+                            proxy.accessToken(),
+                            serverId
+                        );
+                    } catch (Exception ex) {
+                        proxy.logger().error("An error happened during server join", ex);
+                        backend.close();
+                        frontend.close();
+                        return;
+                    }
 
                     backend.writeAndFlush(new EncryptionResponse(
                         MinecraftEncryption.encryptData(publicKey, secretKey.getEncoded()),
