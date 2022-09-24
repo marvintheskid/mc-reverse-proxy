@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-group = "gbx.proxy"
+group = "me.marvin"
 version = "1.0-SNAPSHOT"
 
 plugins {
