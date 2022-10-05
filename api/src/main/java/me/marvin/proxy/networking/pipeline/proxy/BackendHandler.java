@@ -62,7 +62,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                 Tristate cancelPackets = proxy.callListeners(type, buf, ctx, version);
 
                 if (cancelPackets.booleanValue()) {
-                    buf.clear();
+                    buf.release();
                     return;
                 }
 
