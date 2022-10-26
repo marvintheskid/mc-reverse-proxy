@@ -1,6 +1,7 @@
 package me.marvin.proxy.addon;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import me.marvin.proxy.networking.PacketListener;
 import me.marvin.proxy.networking.Version;
@@ -21,13 +22,8 @@ record RegisteredPacketListener(Object owner, PacketListener listener) implement
     }
 
     @Override
-    public Tristate handle(PacketType type, ByteBuf buf, ChannelHandlerContext context, Version version) {
-        return listener.handle(type, buf, context, version);
-    }
-
-    @Override
-    public Tristate handle(PacketType type, ByteBuf buf, ChannelHandlerContext context, Version version, Tristate cancelled) {
-        return listener.handle(type, buf, context, version, cancelled);
+    public Tristate handle(PacketType type, ByteBuf buf, Channel sender, ChannelHandlerContext receiver, Version version, Tristate cancelled) {
+        return listener.handle(type, buf, sender, receiver, version, cancelled);
     }
 
     @Override
