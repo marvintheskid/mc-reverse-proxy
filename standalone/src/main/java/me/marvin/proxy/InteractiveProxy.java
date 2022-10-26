@@ -86,6 +86,7 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
         commandTree.register(args -> {
             logger.info("Current credentials:");
+            logger.info(" Session Service: {}", proxy.sessionService());
             logger.info(" Name: '{}'", proxy.name());
             logger.info(" UUID: '{}'", proxy.uuid());
             logger.info(" Token: '{}'", proxy.accessToken());
