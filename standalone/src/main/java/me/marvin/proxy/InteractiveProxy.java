@@ -146,8 +146,12 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
     @Override
     protected void runCommand(String command) {
-        if (commandTree.execute(command) == Tristate.NOT_SET) {
-            logger.info("Unknown command '{}'", command);
+        try {
+            if (commandTree.execute(command) == Tristate.NOT_SET) {
+                logger.info("Unknown command '{}'", command);
+            }
+        } catch (Exception ex) {
+            logger.error("An error happened while executing '{}'", command, ex);
         }
     }
 
