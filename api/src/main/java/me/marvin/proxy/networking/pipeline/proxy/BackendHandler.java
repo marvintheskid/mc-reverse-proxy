@@ -59,7 +59,7 @@ public class BackendHandler extends ChannelDuplexHandler {
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
                 PacketType type = PacketTypes.findThrowing(ProtocolDirection.CLIENT, phase, id, version);
-                Tristate cancelPackets = proxy.callListeners(type, buf, ctx, version);
+                Tristate cancelPackets = proxy.callListeners(type, buf, frontend, ctx, version);
 
                 if (cancelPackets.booleanValue()) {
                     buf.release();

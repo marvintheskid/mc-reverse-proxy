@@ -64,11 +64,11 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
         commandTree.register(args -> {
             if (args.length != 1) {
-                logger.info("Usage: setuuid [undashed uuid]");
+                logger.info("Usage: setuuid [uuid]");
                 return false;
             }
 
-            proxy.uuid(args[0]);
+            proxy.uuid(args[0].replace("-", ""));
             logger.info("Set uuid to: '{}'", proxy.uuid());
             return true;
         }, "setuuid");
@@ -86,6 +86,7 @@ public class InteractiveProxy extends SimpleTerminalConsole {
 
         commandTree.register(args -> {
             logger.info("Current credentials:");
+            logger.info(" Session Service: {}", proxy.sessionService());
             logger.info(" Name: '{}'", proxy.name());
             logger.info(" UUID: '{}'", proxy.uuid());
             logger.info(" Token: '{}'", proxy.accessToken());
