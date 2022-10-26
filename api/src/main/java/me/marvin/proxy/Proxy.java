@@ -186,17 +186,18 @@ public class Proxy {
     /**
      * Calls all the packet listeners.
      *
-     * @param type    the packet type
-     * @param buf     the buffer
-     * @param context the netty context
-     * @param version the version
+     * @param type     the packet type
+     * @param buf      the buffer
+     * @param receiver the receiver
+     * @param sender   the sender
+     * @param version  the version
      * @return false if the server should consume the packet, otherwise true
      */
-    public Tristate callListeners(PacketType type, ByteBuf buf, ChannelHandlerContext context, Version version) {
+    public Tristate callListeners(PacketType type, ByteBuf buf, Channel sender, ChannelHandlerContext receiver, Version version) {
         Tristate cancelled = Tristate.NOT_SET;
 
         for (PacketListener listener : listeners) {
-            Tristate newState = listener.handle(type, buf, context, version, cancelled);
+            Tristate newState = listener.handle(type, buf, sender, receiver, version, cancelled);
             if (newState != Tristate.NOT_SET) {
                 cancelled = newState;
             }
