@@ -46,7 +46,8 @@ public interface Version {
     Version V1_18 = version(757, "1.18");
     Version V1_18_2 = version(758, "1.18.2");
     Version V1_19 = version(759, "1.19");
-    Version V1_19_1 = version(760, "1.19.1");
+    Version V1_19_1 = version(760, "1.19.1/1.19.2");
+    Version V1_19_3 = version(761, "1.19.3");
 
     /**
      * Returns the numerical representation of this protocol version.
