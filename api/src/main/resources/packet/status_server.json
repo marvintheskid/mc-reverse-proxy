@@ -42,5 +42,9 @@
   "V1_17": [
     "SERVER_INFO", 
     "PONG"
+  ],
+  "V1_18": [
+    "SERVER_INFO",
+    "PONG"
   ]
 }

@@ -336,7 +336,8 @@ public interface PacketTypes {
             Tuple.tuple(Version.V1_15_2, "V1_15_2"),
             Tuple.tuple(Version.V1_16, "V1_16"),
             Tuple.tuple(Version.V1_16_2, "V1_16_2"),
-            Tuple.tuple(Version.V1_17, "V1_17")
+            Tuple.tuple(Version.V1_17, "V1_17"),
+            Tuple.tuple(Version.V1_18, "V1_18")
         ).toList();
 
         private static <T extends Enum<?> & MutablePacketType> void loadMappings(Class<T> clazz, JsonObject mapping) {
