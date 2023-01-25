@@ -77,18 +77,6 @@ public interface PacketTypes {
      */
     sealed interface MutablePacketType extends PacketType permits Handshake, Status, Login, Play {
         /**
-         * Sets the id for this packet per version.
-         *
-         * @param version the version
-         * @param id      the id
-         * @deprecated for internal use
-         */
-        @Deprecated
-        default void id(@NotNull Version version, int id) {
-            versionMap().put(version.version(), id);
-        }
-
-        /**
          * {@inheritDoc}
          *
          * @param version the version
@@ -116,7 +104,7 @@ public interface PacketTypes {
      */
     sealed interface Handshake extends MutablePacketType {
         static void load() {
-            Cache.loadMappings(Client.class, Cache.mapping("handshake_client.json"));
+            Cache.loadMappings(Client.class, Cache.mapping("handshake_client.json"), p -> p.versionMap);
         }
 
         @Override
@@ -133,7 +121,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -149,8 +137,8 @@ public interface PacketTypes {
      */
     sealed interface Play extends MutablePacketType {
         static void load() {
-            Cache.loadMappings(Client.class, Cache.mapping("play_client.json"));
-            Cache.loadMappings(Server.class, Cache.mapping("play_server.json"));
+            Cache.loadMappings(Client.class, Cache.mapping("play_client.json"), p -> p.versionMap);
+            Cache.loadMappings(Server.class, Cache.mapping("play_server.json"), p -> p.versionMap);
         }
 
         @Override
@@ -174,7 +162,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -206,7 +194,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -222,8 +210,8 @@ public interface PacketTypes {
      */
     sealed interface Status extends MutablePacketType {
         static void load() {
-            Cache.loadMappings(Client.class, Cache.mapping("status_client.json"));
-            Cache.loadMappings(Server.class, Cache.mapping("status_server.json"));
+            Cache.loadMappings(Client.class, Cache.mapping("status_client.json"), p -> p.versionMap);
+            Cache.loadMappings(Server.class, Cache.mapping("status_server.json"), p -> p.versionMap);
         }
 
         @Override
@@ -240,7 +228,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -258,7 +246,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -274,8 +262,8 @@ public interface PacketTypes {
      */
     sealed interface Login extends MutablePacketType {
         static void load() {
-            Cache.loadMappings(Client.class, Cache.mapping("login_client.json"));
-            Cache.loadMappings(Server.class, Cache.mapping("login_server.json"));
+            Cache.loadMappings(Client.class, Cache.mapping("login_client.json"), p -> p.versionMap);
+            Cache.loadMappings(Server.class, Cache.mapping("login_server.json"), p -> p.versionMap);
         }
 
         @Override
@@ -292,7 +280,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -310,7 +298,7 @@ public interface PacketTypes {
             @Override
             @NotNull
             public Map<Integer, Integer> versionMap() {
-                return versionMap;
+                return Collections.unmodifiableMap(versionMap);
             }
 
             @Override
@@ -340,7 +328,7 @@ public interface PacketTypes {
             Tuple.tuple(Version.V1_18, "V1_18")
         ).toList();
 
-        private static <T extends Enum<?> & MutablePacketType> void loadMappings(Class<T> clazz, JsonObject mapping) {
+        private static <T extends Enum<?> & MutablePacketType> void loadMappings(Class<T> clazz, JsonObject mapping, Function<T, Map<Integer, Integer>> registry) {
             T[] rawConstants = clazz.getEnumConstants();
             Map<String, T> constants = Arrays.stream(rawConstants)
                 .collect(Collectors.toMap(e -> e.name(), Function.identity()));
@@ -352,7 +340,8 @@ public interface PacketTypes {
 
                     for (int i = 0; i < array.size(); i++) {
                         T packet = Objects.requireNonNull(constants.get(array.get(i).getAsString()), "can't add id because packet is null (" + clazz.getName() + ", " + array +  ", " + array.get(i).getAsString() + ", " + version.toString() + ")");
-                        packet.id(version, i);
+                        registry.apply(packet)
+                            .put(version.version(), i);
                     }
 
                     registerVersion(version, rawConstants);
