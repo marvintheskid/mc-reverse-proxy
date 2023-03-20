@@ -54,7 +54,7 @@ public class BackendHandler extends ChannelDuplexHandler {
         Channel backend = ctx.channel();
 
         if (msg instanceof ByteBuf buf) {
-            try (IndexRollback __ = IndexRollback.reader(buf)) {
+            try (IndexRollback __ = IndexRollback.readerManual(buf)) {
                 int id = readVarInt(buf);
                 ProtocolPhase phase = ctx.channel().attr(Keys.PHASE_KEY).get();
                 Version version = ctx.channel().attr(Keys.VERSION_KEY).get();
